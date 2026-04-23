@@ -24,12 +24,12 @@ function SlideVision() {
         wild stewart<br />homeschool
       </h1>
       <p className="text-amber-200/70 text-xl font-medium mb-12 max-w-xl leading-relaxed">
-        Your family’s homeschool operating system — built for how you actually work.
+        Your family's homeschool operating system — built for how you actually work.
       </p>
       <div className="grid grid-cols-2 gap-6 w-full max-w-2xl text-left">
         <div className="rounded-2xl p-6" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
           <div className="text-amber-400 font-bold text-sm uppercase tracking-wider mb-3">
-            Joelle’s side
+            Joelle's side
           </div>
           <p className="text-amber-100/80 leading-relaxed">
             A planning tool that makes Sunday prep feel like craft, not drudgery. Library, week calendar, progress at a glance.
@@ -37,7 +37,7 @@ function SlideVision() {
         </div>
         <div className="rounded-2xl p-6" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
           <div className="text-amber-400 font-bold text-sm uppercase tracking-wider mb-3">
-            Lyle’s side
+            Lyle's side
           </div>
           <p className="text-amber-100/80 leading-relaxed">
             Colorful lesson tiles, his name on the screen, a celebration every time he finishes something. Learning feels like play.
@@ -116,9 +116,10 @@ function SlideWeek() {
         Plan Sunday Night
       </h2>
       <p className="text-amber-200/70 text-lg mb-8 text-center max-w-xl">
-        Open “This Week,” navigate to April 28, and click <strong className="text-amber-300">+ Add</strong> on each day to pull lessons from your library.
+        Open "This Week," navigate to April 28, and click <strong className="text-amber-300">+ Add</strong> on each day to pull lessons from your library.
       </p>
 
+      {/* Mini week grid */}
       <div className="grid grid-cols-5 gap-2 w-full">
         {days.map((day, i) => (
           <div key={day} className="rounded-xl p-3 flex flex-col gap-2" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
@@ -156,10 +157,10 @@ function SlideLyle() {
   return (
     <div className="flex flex-col items-center justify-center h-full px-8 max-w-3xl mx-auto text-center">
       <p className="text-amber-400 text-sm font-bold uppercase tracking-[0.2em] mb-4">
-        Lyle’s experience
+        Lyle's experience
       </p>
       <h2 className="font-display font-black text-5xl text-amber-100 tracking-tight mb-4">
-        Lyle’s World
+        Lyle's World
       </h2>
       <p className="text-amber-200/70 text-lg mb-3 max-w-lg">
         He opens the iPad, taps his name, and sees his week as colorful tiles.
@@ -168,6 +169,7 @@ function SlideLyle() {
         {LEARN_URL}
       </p>
 
+      {/* Tile preview */}
       <div className="grid grid-cols-2 gap-3 mb-8 w-full max-w-sm">
         {tiles.map((t, i) => {
           const color = SUBJECTS.find(s => s.value === t.subject)?.color ?? '#888'
@@ -193,7 +195,7 @@ function SlideLyle() {
           { icon: '👀', text: 'Reads the instructions' },
           { icon: '▶', text: 'Watches the video — right in the app' },
           { icon: '📄', text: 'Opens the worksheet with one tap' },
-          { icon: '⭐', text: 'Hits “I\'m done!” → confetti flies' },
+          { icon: '⭐', text: 'Hits "I\'m done!" → confetti flies' },
         ].map(step => (
           <div key={step.icon} className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
             <span className="text-xl w-7 text-center flex-shrink-0">{step.icon}</span>
@@ -302,12 +304,14 @@ export default function WelcomePage() {
       className="min-h-screen flex flex-col font-sans select-none"
       style={{ backgroundColor: '#2C1A0E', color: '#F5DEB3' }}
     >
+      {/* Slide area */}
       <div className="flex-1 flex flex-col justify-center" style={{ minHeight: 0 }}>
         <div className="transition-opacity duration-300" key={current}>
           {slideContent[current]}
         </div>
       </div>
 
+      {/* Bottom nav */}
       <div className="flex items-center justify-between px-8 py-6">
         <button
           onClick={() => goTo(current - 1)}
@@ -346,6 +350,7 @@ export default function WelcomePage() {
         )}
       </div>
 
+      {/* Slide counter */}
       <div
         className="absolute top-6 right-8 text-sm font-semibold tabular-nums"
         style={{ color: 'rgba(242,162,74,0.4)' }}

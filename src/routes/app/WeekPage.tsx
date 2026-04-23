@@ -105,6 +105,7 @@ export default function WeekPage() {
 
   return (
     <div>
+      {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
           <h2 className="font-display text-3xl font-black text-adult-ink tracking-tight">
@@ -198,6 +199,7 @@ export default function WeekPage() {
         </div>
       )}
 
+      {/* Lesson picker modal */}
       {pickDay !== null && (
         <div
           className="fixed inset-0 bg-black/30 flex items-end sm:items-center justify-center p-4 z-50"

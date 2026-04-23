@@ -111,6 +111,7 @@ export default function LessonPage() {
         className="min-h-screen flex flex-col items-center justify-center font-rounded text-white p-8 text-center"
         style={{ backgroundColor: color }}
       >
+        {/* Stars raining down */}
         <div className="text-8xl mb-2 animate-bounce" style={{ animationDuration: '0.6s' }}>
           ⭐
         </div>
@@ -140,6 +141,7 @@ export default function LessonPage() {
 
   return (
     <div className="min-h-screen bg-learner-bg font-rounded">
+      {/* Color header band */}
       <div className="text-white px-6 pt-8 pb-12" style={{ backgroundColor: color }}>
         <button
           onClick={() => navigate(`/learn/${profileId}`)}
@@ -155,6 +157,7 @@ export default function LessonPage() {
         </h1>
       </div>
 
+      {/* Content */}
       <div className="px-5 -mt-6 max-w-lg mx-auto pb-12">
         {assignment.lesson.description && (
           <div className="bg-white rounded-2xl p-6 mb-4 shadow-sm">
