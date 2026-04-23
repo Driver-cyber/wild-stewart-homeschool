@@ -43,6 +43,7 @@ export default function LessonPage() {
   const [completed, setCompleted] = useState(false)
   const [celebrating, setCelebrating] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (!assignmentId || !profileId) return
@@ -70,7 +71,8 @@ export default function LessonPage() {
   }, [assignmentId, profileId])
 
   async function markDone() {
-    if (!user || !assignment || completed) return
+    if (!user || !assignment || completed || saving) return
+    setSaving(true)
     const { error } = await supabase.from('completions').insert({
       user_id: user.id,
       assignment_id: assignment.id,
@@ -81,6 +83,7 @@ export default function LessonPage() {
       setCelebrating(true)
       fireConfetti(subjectColor(assignment.lesson.subject))
     }
+    setSaving(false)
   }
 
   if (loading) {
@@ -228,10 +231,11 @@ export default function LessonPage() {
           ) : (
             <button
               onClick={markDone}
-              className="w-full text-white font-black text-2xl py-6 rounded-2xl shadow-lg hover:opacity-90 active:scale-95 transition-all"
+              disabled={saving}
+              className="w-full text-white font-black text-2xl py-6 rounded-2xl shadow-lg hover:opacity-90 active:scale-95 disabled:opacity-70 transition-all"
               style={{ backgroundColor: color }}
             >
-              I'm done! ⭐
+              {saving ? '…' : "I'm done! ⭐"}
             </button>
           )}
         </div>

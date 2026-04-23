@@ -88,6 +88,7 @@ export default function LibraryPage() {
   }
 
   async function handleDelete(lesson: Lesson) {
+    if (!window.confirm(`Delete "${lesson.title}"? This can't be undone.`)) return
     if (lesson.pdf_path) {
       await supabase.storage.from('resources').remove([lesson.pdf_path])
     }

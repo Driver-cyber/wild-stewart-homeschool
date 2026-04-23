@@ -226,7 +226,8 @@ export default function WeekPage() {
               ) : (
                 <div className="space-y-1">
                   {SUBJECTS.map(subject => {
-                    const group = lessons.filter(l => l.subject === subject.value)
+                    const alreadyAssigned = new Set(pickDay ? forDay(pickDay).map(a => a.lesson_id) : [])
+                    const group = lessons.filter(l => l.subject === subject.value && !alreadyAssigned.has(l.id))
                     if (group.length === 0) return null
                     return (
                       <div key={subject.value}>

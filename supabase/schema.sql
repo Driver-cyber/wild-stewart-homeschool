@@ -33,9 +33,12 @@ CREATE TABLE IF NOT EXISTS lessons (
   subject       text        NOT NULL CHECK (subject IN ('reading','writing','math','science','social_studies')),
   description   text,
   resource_url  text,
+  pdf_path      text,
   lesson_type   text        NOT NULL DEFAULT 'general',
   created_at    timestamptz NOT NULL DEFAULT now()
 );
+
+-- Migration: ALTER TABLE lessons ADD COLUMN IF NOT EXISTS pdf_path text;
 
 ALTER TABLE lessons ENABLE ROW LEVEL SECURITY;
 

@@ -52,9 +52,10 @@ export default function ProfilesPage() {
     setSaving(false)
   }
 
-  async function handleDelete(id: string) {
-    await supabase.from('profiles').delete().eq('id', id)
-    setProfiles(prev => prev.filter(p => p.id !== id))
+  async function handleDelete(profile: Profile) {
+    if (!window.confirm(`Remove "${profile.name}"? Their assignments and progress will be deleted.`)) return
+    await supabase.from('profiles').delete().eq('id', profile.id)
+    setProfiles(prev => prev.filter(p => p.id !== profile.id))
   }
 
   return (
@@ -163,7 +164,7 @@ export default function ProfilesPage() {
                 <div className="font-semibold text-adult-ink text-lg">{p.name}</div>
               </div>
               <button
-                onClick={() => handleDelete(p.id)}
+                onClick={() => handleDelete(p)}
                 className="text-adult-muted hover:text-red-500 transition-colors text-sm"
               >
                 Remove
