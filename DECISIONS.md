@@ -1,0 +1,221 @@
+# DECISIONS.md — Wild Stewart Homeschool
+
+> **Note to Claude Code:** This is the project's living log. It holds the current
+> vibe, active decisions, recent pivots, and the parking lot of deferred questions.
+> Read this at the start of every session. For stable principles and architecture,
+> read `CLAUDE.md`.
+
+---
+
+## 🎯 The North Star (Current Goal)
+
+**Goal:** Ship v1 — Joelle plans a week for Lyle on Sunday, Lyle uses it on iPad
+through the week, Joelle sees done/not-done in her week view. The full loop.
+
+**Vibe:** Deliberate and foundation-first. We are rebuilding from scratch after a
+working prototype, so we have the luxury of getting the architecture right without
+the pressure of an impatient first user. Joelle will onboard when the core loop
+works — not before. Rolling improvements after that.
+
+**Ship target:** Ongoing, not a specific date. Minimum bar to declare v1 "real" is
+Module 10 (Real-World Shakedown) in CLAUDE.md.
+
+---
+
+## 🛠 Active Tech Stack
+
+- **Frontend:** Vite + React + TypeScript
+- **Styling:** Tailwind (with two theme contexts — adult/learner)
+- **Database:** Supabase Postgres
+- **Auth:** Supabase Auth (email + password, single household login)
+- **Storage:** Supabase Storage
+- **Hosting:** Cloudflare Pages
+- **State:** React Context + local component state (no Redux/Zustand)
+- **Repo:** `wild-stewart-homeschool` on GitHub (under Chad's account)
+
+---
+
+## 📝 Decision Log
+
+### 2026-04-23 — Founding session
+
+*Captured from the planning conversation that produced these docs. Decisions are
+listed with the reasoning behind them so future sessions understand the why, not
+just the what.*
+
+**Architecture & foundation:**
+
+- **Fresh rebuild, not an extension.** The existing Wild Stewart Homeschool app
+  (vanilla React + Babel-in-browser + localStorage) is reference code only.
+  Patterns that worked carry forward; the codebase does not. Rationale: the
+  existing app is a prototype architecture, not a product architecture, and
+  extending it would inherit constraints that don't serve the real scope.
+
+- **Supabase + Cloudflare chosen over Firebase.** Chad's explicit preference for
+  Supabase's simplicity of maintenance and Cloudflare's infrastructure. The data
+  model is genuinely relational (lessons ↔ resources ↔ assignments ↔ completions ↔
+  profiles), so Postgres is a better fit than Firestore's document model.
+
+- **Auth from day one, not "added later."** The no-login default was reconsidered
+  and reversed: retrofitting auth into a Supabase app is a weekend of work vs. 10
+  minutes now. Single household login (Joelle's email + password) chosen over
+  magic links to match the "simple for our family" feel Chad was after.
+
+- **Two accounts → one user + multiple learner profiles.** Initial answer was
+  "two accounts." Reasoning follow-up revealed that the intent was "each person
+  has their own data view," which is better served by learner profiles under a
+  single authenticated user than by separate user accounts. Joelle logs in; kids
+  are profiles she manages. Netflix-style profile picker on iPad.
+
+- **Multi-kid supported in data model from day one.** A sibling is likely joining
+  in the next 1–2 years. Schema carries `profile_id` on every assignment and
+  completion row from the start. Retrofitting this later would mean a painful
+  migration. Lyle is the only learner at v1 launch.
+
+- **TypeScript, not plain JavaScript.** Data-heavy app with structured lesson
+  content; TypeScript catches the class of bug that most often breaks this kind
+  of product (missing required fields on lesson content silently failing).
+
+- **Tailwind for styling.** Utility-first speed for the large UI surface area
+  ahead (planning calendar, library, lesson editor, learner views). Custom theme
+  tokens will handle the two-aesthetic requirement.
+
+**Product scope:**
+
+- **One integrated product, two surfaces.** Not two separate apps. Joelle's
+  planning side and the learner-facing side live in the same codebase and talk
+  to the same database.
+
+- **Dual-mode planning UX (calendar + board), calendar first.** Both views
+  render the same underlying assignment data. Build order: calendar view in v1,
+  board view in v1.1. Rationale: two views of broken data is worse than one view
+  of working data.
+
+- **Sunday-night-planner rhythm drives the design.** Joelle's workflow is batch
+  planning once a week, not daily glances. The week-view calendar is optimized
+  for focused 30-minute sessions, not quick lookups.
+
+- **V1 = full loop with thin surface area.** Joelle creates a lesson, schedules
+  it, Lyle does it, progress tracks. Minimum viable. Everything else is v1.x
+  or v2.
+
+- **V1 lesson types: `general` + `reading` + `spelling`.** Three types cover:
+  all-text, structured-interactive, and interactive-with-completion-state.
+  Math uses the `general` type in v1 (acknowledged roughness). Other types
+  (`math_place_value`, `math_stacked`, `interactive`) return in v1.x as
+  vertical slices.
+
+- **Library is MVP-only in v1.** Upload a PDF or URL, attach to a lesson,
+  basic list view. Phased approach: tags/search/previews/organization in v1.x
+  after Joelle has used the MVP and told us what she actually needs. Resources
+  in scope include PDFs, web links, and Joelle's own written lesson plans.
+
+- **Progress visibility is minimal in v1.** Done/not-done per scheduled lesson
+  in Joelle's week view. Literally that. Progress dashboards expand without
+  limit if allowed; we hold the line.
+
+- **Kid-facing side inherits the prototype's DNA.** Refined, not replaced. Nunito
+  rounded typography, tightened pastels, celebration energy, the 5-subject
+  color system. The prototype's kid-facing feel works for a 7-year-old.
+
+- **Joelle's side is warm/editorial/craftsman-y.** Reference points: Frank
+  Chimero, good indie bookstores, editorial magazines. Fraunces serif +
+  supporting sans. Muted saturated palette. Not Swiss minimalism. Not corporate
+  SaaS.
+
+- **Project name stays "Wild Stewart Homeschool."** Keeps the family identity
+  and the brand continuity with the prototype.
+
+**Governance:**
+
+- **Three founding artifacts:** `CLAUDE.md` (constitution), `DECISIONS.md` (this
+  file), `wild-stewart-tracker.html` (visual priority board). Tracker follows
+  the schema from Chad's New Project Constitution Snippet.
+
+- **Red team cadence:** every 2–3 completed modules, at phase transitions, and
+  at the start of any session after a 2+ week gap.
+
+- **Session startup protocol:** Read DECISIONS.md → read tracker → confirm
+  current task before starting work.
+
+---
+
+## 🅿️ The Parking Lot (Deferred Decisions)
+
+These are things we deliberately did not decide today. Each has a named condition
+for when it becomes ready to decide.
+
+### Joelle's writing surface (markdown vs. block editor vs. rich text)
+**Decide when:** Joelle has weighed in on her working style for writing lesson
+content.
+**Why deferred:** The right answer depends on whether she thinks in plain text,
+structured blocks, or formatted prose. Guessing wrong here would cost real time.
+
+### Calendar week-only vs. week + month toggle
+**Decide when:** Joelle has used v1 for at least 4 weeks and told us whether the
+week view alone is sufficient for her planning.
+**Why deferred:** Adding a month view now is building to a guess. Adding one later
+based on observed need is building to a signal.
+
+### Joelle's exact color palette
+**Decide when:** Module 7 (Calendar Planning View) is in active design.
+**Why deferred:** We know the *direction* (warm/editorial, muted and saturated),
+but picking specific swatches before the first real interface is ready is
+premature. Chad's branding swatch engine project is a natural tool for this.
+
+### Logo and favicon
+**Decide when:** Before v1 ships — ideally between Module 7 and Module 10.
+**Why deferred:** The existing prototype doesn't have a logo we love. Worth
+creating one with intent rather than throwing something in early.
+
+### "All learners at once" cross-kid view on Joelle's side
+**Decide when:** A second learner is about to join the household.
+**Why deferred:** Real question but not a real need yet.
+
+### Subject list modifications (adding subjects beyond the current 5)
+**Decide when:** Joelle explicitly requests it.
+**Why deferred:** The current 5 (Reading, Writing, Math, Science, Social Studies)
+were validated by the prototype. No reason to open the taxonomy until there is
+pressure to.
+
+### Printing flows beyond basic resource download
+**Decide when:** Joelle identifies a specific printing workflow she needs.
+**Why deferred:** Her Sunday-night rhythm doesn't center on daily printing, and
+guessing at the printing experience she wants is lower-value than listening to
+her describe it.
+
+### Whether to expose Joelle's lesson catalog to any outside audience
+**Decide when:** Never, unless Chad and Joelle deliberately decide to broaden
+scope. Not v1. Not v2. This is here as an explicit non-question.
+
+---
+
+## 💡 Notes & Observations
+
+*Things worth remembering that aren't decisions, but would be lost without being
+written down.*
+
+- The existing prototype's kid-facing UX is genuinely good for Lyle. The
+  5-subject tile grid, the subject color system, the completion celebration —
+  these work. The rebuild improves the chrome, not the core experience.
+
+- Chad's consulting motto is "ordo ab chao." The product is an applied instance of
+  that philosophy. This matters for how the product is described in any
+  user-facing copy.
+
+- The v0 prototype's admin panel (localStorage + CSV upload) is v0 of what
+  Joelle needs. Its roadmap comments name real pain points: no direct editing,
+  no month view, no cloud sync. Those are the exact gaps this rebuild fills.
+
+- Chad has a branding swatch engine project that generates visual branding
+  artifacts. It will likely be used to generate Joelle-side palette swatches
+  when that decision activates.
+
+---
+
+## 🏗 Build Tracker
+
+`wild-stewart-tracker.html` is the visual priority board and machine-readable
+record. It was created as part of the founding session and lives alongside these
+docs. Update it at the end of any session that completes or changes priorities,
+and bump the `updated` field in both the visual header and the JSON data block.

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wild Stewart Homeschool — Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --walnut: #2C1A0E;
+    --card: #3D2410;
+    --border: #4A2E18;
+    --amber: #F2A24A;
+    --wheat: #F5DEB3;
+    --rust: #7A3B1E;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--walnut);
+    color: var(--wheat);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    padding: 3rem 2rem;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .header {
+    margin-bottom: 2.5rem;
+    text-align: center;
+  }
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 2.5rem;
+    letter-spacing: -0.02em;
+    color: var(--wheat);
+    margin-bottom: 0.5rem;
+  }
+  .header .description {
+    font-size: 1.05rem;
+    color: var(--amber);
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+  .header .meta {
+    font-size: 0.875rem;
+    color: var(--rust);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .column {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .column-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .column-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--wheat);
+    margin-bottom: 0.25rem;
+  }
+  .column-sub {
+    font-size: 0.875rem;
+    color: var(--rust);
+    font-weight: 600;
+  }
+  .priorities {
+    margin-bottom: 2rem;
+  }
+  .priority {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    align-items: flex-start;
+  }
+  .priority:last-child {
+    margin-bottom: 0;
+  }
+  .priority-num {
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: var(--amber);
+    color: var(--walnut);
+    font-weight: 700;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0.125rem;
+  }
+  .priority-body {
+    flex: 1;
+  }
+  .priority-title {
+    font-weight: 700;
+    font-size: 1.0625rem;
+    color: var(--wheat);
+    margin-bottom: 0.25rem;
+  }
+  .priority-note {
+    font-size: 0.9375rem;
+    color: var(--amber);
+    line-height: 1.45;
+  }
+  .backlog-header {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--rust);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+  }
+  .backlog {
+    list-style: none;
+    padding: 0;
+  }
+  .backlog li {
+    position: relative;
+    padding-left: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--rust);
+    font-size: 0.9375rem;
+  }
+  .backlog li::before {
+    content: '•';
+    position: absolute;
+    left: 0.25rem;
+    color: var(--rust);
+    font-weight: 700;
+  }
+  .footer {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 0.8125rem;
+    color: var(--rust);
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <h1>Wild Stewart Homeschool</h1>
+    <div class="description">The Stewart family homeschool operating system — planning, library, and learner experience in one.</div>
+    <div class="meta">Updated 2026-04-23 · v1 in planning</div>
+  </header>
+
+  <div class="column">
+    <div class="column-header">
+      <div class="column-name">v1 Build — Full Loop</div>
+      <div class="column-sub">Vite + React + TS · Supabase · Cloudflare Pages</div>
+    </div>
+
+    <div class="priorities">
+      <div class="priority">
+        <div class="priority-num">1</div>
+        <div class="priority-body">
+          <div class="priority-title">Scaffold the skeleton</div>
+          <div class="priority-note">Vite + React + TS + Tailwind running on Cloudflare Pages with Supabase client wired up. Two route shells (Joelle's view, learner view). Nothing else.</div>
+        </div>
+      </div>
+      <div class="priority">
+        <div class="priority-num">2</div>
+        <div class="priority-body">
+          <div class="priority-title">Auth + learner profiles</div>
+          <div class="priority-note">Joelle signs in with email/password. Creates Lyle's profile. iPad shows Netflix-style picker and routes to the right dashboard.</div>
+        </div>
+      </div>
+      <div class="priority">
+        <div class="priority-num">3</div>
+        <div class="priority-body">
+          <div class="priority-title">Data model + lesson catalog</div>
+          <div class="priority-note">Postgres schema with RLS locked down. Seed the 5-subject taxonomy. Joelle can see the (read-only) lesson catalog.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="backlog-header">Backlog</div>
+    <ul class="backlog">
+      <li>Module 4 — `general` lesson type end-to-end (the full loop)</li>
+      <li>Module 5 — `reading` lesson type</li>
+      <li>Module 6 — `spelling` lesson type</li>
+      <li>Module 7 — calendar planning view for Joelle</li>
+      <li>Module 8 — resource library MVP (upload + attach)</li>
+      <li>Module 9 — minimal progress visibility (done / not-done)</li>
+      <li>Module 10 — real-world shakedown</li>
+      <li>Joelle's exact palette (activates at Module 7)</li>
+      <li>Logo and favicon (before v1 ships)</li>
+      <li>Writing surface decision (after Joelle weighs in)</li>
+    </ul>
+  </div>
+
+  <div class="footer">Ordo ab chao.</div>
+</div>
+
+<script id="tracker-data" type="application/json">
+{
+  "project": "Wild Stewart Homeschool",
+  "description": "The Stewart family homeschool operating system — planning, library, and learner experience in one.",
+  "updated": "2026-04-23",
+  "columns": [
+    {
+      "name": "v1 Build — Full Loop",
+      "sub": "Vite + React + TS · Supabase · Cloudflare Pages",
+      "priorities": [
+        { "title": "Scaffold the skeleton", "note": "Vite + React + TS + Tailwind running on Cloudflare Pages with Supabase client wired up. Two route shells (Joelle's view, learner view). Nothing else." },
+        { "title": "Auth + learner profiles", "note": "Joelle signs in with email/password. Creates Lyle's profile. iPad shows Netflix-style picker and routes to the right dashboard." },
+        { "title": "Data model + lesson catalog", "note": "Postgres schema with RLS locked down. Seed the 5-subject taxonomy. Joelle can see the (read-only) lesson catalog." }
+      ],
+      "backlog": [
+        "Module 4 — `general` lesson type end-to-end (the full loop)",
+        "Module 5 — `reading` lesson type",
+        "Module 6 — `spelling` lesson type",
+        "Module 7 — calendar planning view for Joelle",
+        "Module 8 — resource library MVP (upload + attach)",
+        "Module 9 — minimal progress visibility (done / not-done)",
+        "Module 10 — real-world shakedown",
+        "Joelle's exact palette (activates at Module 7)",
+        "Logo and favicon (before v1 ships)",
+        "Writing surface decision (after Joelle weighs in)"
+      ]
+    }
+  ]
+}
+</script>
+</body>
+</html>
