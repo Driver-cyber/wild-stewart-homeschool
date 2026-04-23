@@ -2,7 +2,7 @@
 -- Run this in the Supabase SQL editor (wildly-stewart project)
 -- Safe to re-run: uses CREATE TABLE IF NOT EXISTS + CREATE POLICY IF NOT EXISTS
 
--- ─── Learner profiles ────────────────────────────────────────────────────────
+-- ─── Learner profiles ──────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS profiles (
   id            uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -24,7 +24,7 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- ─── Lesson catalog (Joelle's library) ───────────────────────────────────────
+-- ─── Lesson catalog (Joelle's library) ───────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS lessons (
   id            uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -33,9 +33,12 @@ CREATE TABLE IF NOT EXISTS lessons (
   subject       text        NOT NULL CHECK (subject IN ('reading','writing','math','science','social_studies')),
   description   text,
   resource_url  text,
+  pdf_path      text,
   lesson_type   text        NOT NULL DEFAULT 'general',
   created_at    timestamptz NOT NULL DEFAULT now()
 );
+
+-- Migration: ALTER TABLE lessons ADD COLUMN IF NOT EXISTS pdf_path text;
 
 ALTER TABLE lessons ENABLE ROW LEVEL SECURITY;
 
@@ -48,7 +51,7 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- ─── Assignments (lesson scheduled for a profile on a date) ──────────────────
+-- ─── Assignments (lesson scheduled for a profile on a date) ──────────────────────────
 
 CREATE TABLE IF NOT EXISTS assignments (
   id              uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -70,7 +73,7 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- ─── Completions (append-only — a completion is a fact that happened) ─────────
+-- ─── Completions (append-only — a completion is a fact that happened) ─────────────────
 
 CREATE TABLE IF NOT EXISTS completions (
   id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
