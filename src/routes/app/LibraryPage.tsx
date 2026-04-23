@@ -119,8 +119,8 @@ export default function LibraryPage() {
         <div className="bg-white border border-adult-border rounded-2xl p-6 mb-8 shadow-sm">
           <h3 className="font-display text-xl font-bold text-adult-ink mb-5">New lesson</h3>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-sm font-semibold text-adult-ink mb-1.5">Title *</label>
                 <input
                   value={title}
@@ -157,7 +157,7 @@ export default function LibraryPage() {
                 />
               </div>
 
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-sm font-semibold text-adult-ink mb-1.5">
                   Worksheet / PDF
                 </label>

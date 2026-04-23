@@ -37,6 +37,46 @@ Module 10 (Real-World Shakedown) in CLAUDE.md.
 
 ## 📝 Decision Log
 
+### 2026-04-23 — Mobile and iPad responsiveness pass
+
+Pre-demo audit of all screens against iPhone, iPad portrait, and Mac browser.
+Issues found and fixed in one pass; no architectural changes, layout fixes only.
+
+**Welcome slides (`/welcome`):**
+- SlideWeek's 5-column mini calendar was ~60px per column on iPhone —
+  unreadable (confirmed in screenshot). Fixed with `overflow-x-auto` wrapper
+  and `min-width: 340px` so the grid scrolls horizontally rather than crushing.
+  Sample tile titles shortened and tile text drops to `text-[10px]` on mobile
+  with `line-clamp-2`.
+- SlideVision and SlideStatus had `grid-cols-2` that squished two tiny columns
+  on phones — changed to `grid-cols-1 sm:grid-cols-2`.
+- No touch-swipe navigation existed (keyboard-only). Added `onTouchStart` /
+  `onTouchEnd` handlers with a 50px drag threshold. Swipe now works on iPhone
+  and iPad without any library.
+- Tall slide content could clip on landscape phones — `overflow-y-auto` added
+  to the slide area so content scrolls rather than disappearing.
+
+**Joelle's app:**
+- AppShell nav: 5 items at `gap-6` overflows on iPhone. Logo gets
+  `flex-shrink-0 whitespace-nowrap`; links container gets `overflow-x-auto` —
+  all items always reachable by scrolling horizontally.
+- WeekPage 5-column calendar: ~66px/col on iPhone. `overflow-x-auto` wrapper
+  with `min-w-[560px]` on the grid — identical on Mac/iPad, scrollable on phone.
+- WeekPage header: `flex-col sm:flex-row` so controls stack below the title on
+  narrow screens instead of fighting for horizontal space.
+- LibraryPage form: `grid-cols-1 sm:grid-cols-2` so subject/URL fields stack on
+  phones.
+
+**Unchanged (already mobile-first):** Login, ProfilePicker, Lyle's WeekView,
+LessonPage — single-column layouts with correct touch tap targets.
+
+**Breakpoint decision:** Tailwind `sm:` (640px) as the threshold for all
+two-column layout switches. Horizontal scroll (not layout collapse) for the
+5-column calendar and welcome grid — both are intentionally 5-wide and scroll
+preserves that semantics rather than hiding days.
+
+---
+
 ### 2026-04-23 — Demo-week build-out (Modules 1–4 + slices of 7, 8, 9 shipped)
 
 After the founding session, a long working session took the project from empty
