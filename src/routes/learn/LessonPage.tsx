@@ -4,7 +4,12 @@ import confetti from 'canvas-confetti'
 import { supabase } from '../../lib/supabase'
 import type { Lesson, Profile } from '../../lib/types'
 import { SUBJECTS, subjectColor } from '../../lib/types'
+import { getYouTubeId } from '../../lib/youtube'
 import { useAuth } from '../../contexts/AuthContext'
+
+function getPdfUrl(path: string): string {
+  return supabase.storage.from('resources').getPublicUrl(path).data.publicUrl
+}
 
 interface AssignmentFull {
   id: string
@@ -158,23 +163,58 @@ export default function LessonPage() {
           </div>
         )}
 
-        {assignment.lesson.resource_url && (
+        {(() => {
+          const ytId = assignment.lesson.resource_url ? getYouTubeId(assignment.lesson.resource_url) : null
+          if (ytId) {
+            return (
+              <div className="bg-white rounded-2xl overflow-hidden mb-4 shadow-sm">
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    className="absolute inset-0 w-full h-full"
+                    src={`https://www.youtube.com/embed/${ytId}`}
+                    title={assignment.lesson.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )
+          }
+          if (assignment.lesson.resource_url) {
+            return (
+              <a
+                href={assignment.lesson.resource_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-white rounded-2xl p-5 mb-4 shadow-sm transition-transform active:scale-[0.98]"
+                style={{ borderLeft: `4px solid ${color}` }}
+              >
+                <div className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color }}>
+                  Open link ↗
+                </div>
+                <div className="text-learner-muted text-sm font-medium truncate">
+                  {assignment.lesson.resource_url}
+                </div>
+              </a>
+            )
+          }
+          return null
+        })()}
+
+        {assignment.lesson.pdf_path && (
           <a
-            href={assignment.lesson.resource_url}
+            href={getPdfUrl(assignment.lesson.pdf_path)}
             target="_blank"
             rel="noopener noreferrer"
-            className="block bg-white rounded-2xl p-5 mb-4 shadow-sm transition-transform active:scale-[0.98]"
+            className="flex items-center gap-4 bg-white rounded-2xl p-5 mb-4 shadow-sm transition-transform active:scale-[0.98]"
             style={{ borderLeft: `4px solid ${color}` }}
           >
-            <div
-              className="text-xs font-bold uppercase tracking-wider mb-1"
-              style={{ color }}
-            >
-              Open resource ↗
+            <span className="text-5xl">📄</span>
+            <div>
+              <div className="font-black text-learner-ink text-xl">Open my worksheet</div>
+              <div className="text-learner-muted text-sm font-medium mt-0.5">Tap to open</div>
             </div>
-            <div className="text-learner-muted text-sm font-medium truncate">
-              {assignment.lesson.resource_url}
-            </div>
+            <span className="ml-auto text-3xl" style={{ color }}>↗</span>
           </a>
         )}
 

@@ -14,6 +14,7 @@ export interface Lesson {
   subject: Subject
   description: string | null
   resource_url: string | null
+  pdf_path: string | null
   lesson_type: 'general'
   created_at: string
 }
