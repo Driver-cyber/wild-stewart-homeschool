@@ -37,6 +37,69 @@ Module 10 (Real-World Shakedown) in CLAUDE.md.
 
 ## 📝 Decision Log
 
+### 2026-04-23 — Demo-week build-out (Modules 1–4 + slices of 7, 8, 9 shipped)
+
+After the founding session, a long working session took the project from empty
+repo to Joelle-ready demo. End state:
+
+- **Modules 1–4 complete.** Full scaffolding, Supabase schema + RLS, auth,
+  learner profiles, and the `general` lesson type end-to-end. Joelle can log
+  in, build a library, plan a week, and Lyle can open his iPad, do a lesson,
+  hit "I'm done," and see confetti. The full loop exists.
+- **Module 7 (calendar planning) partially done.** The week view works with
+  Mon–Fri grid, per-day assignment, profile selector, and a lesson picker
+  modal. No drag-and-drop yet; that's v1.1.
+- **Module 8 (library) MVP done and then some.** Upload PDFs to Supabase
+  Storage, paste URLs, attach to lessons. YouTube URLs auto-embed in Lyle's
+  lesson view. This jumped ahead of its numbered slot because lesson content
+  was too thin without it — a 6-year-old can't read notes off a screen
+  independently.
+- **Module 9 (progress visibility) minimal done.** Week view shows ✓ Done
+  per assignment. Holding the line on anything beyond that.
+
+**Decisions made during this session:**
+
+- **PDF upload over custom worksheet builder.** Joelle designs worksheets in
+  Canva / Google Slides / anywhere she already knows, exports PDF, uploads in
+  ~10 seconds. Lyle sees a big "Open my worksheet" button. This is the "oh
+  wow" demo moment without the cost of building a visual editor.
+- **YouTube auto-embed, not a generic video player.** Paste a YouTube URL →
+  iframe plays inline. Any other URL renders as a link card. This is a single
+  platform bet made on the assumption that YouTube is where the educational
+  content Joelle will use actually lives.
+- **Supabase Storage public-read policy for `resources` bucket.** Anyone with
+  the URL can read; only Joelle can upload/delete. This is the simplest way
+  to make `getPublicUrl()` work for the PDF open button without auth plumbing.
+- **Welcome/guide walkthrough at `/welcome`.** Five-slide dark walnut deck
+  Joelle can step through to see the vision, the library flow, the planning
+  rhythm, Lyle's experience, and what's ready vs. coming next. Route is
+  public (no auth required) so it doubles as a hand-off surface.
+- **Confetti celebration, no star/coin tracking yet.** Deliberately deferred —
+  we want to watch whether Lyle cares about accumulation vs. the immediate
+  feel of completion. Confetti handles immediate gratification.
+
+**Bug fixes before hand-off (same session):**
+
+- ProtectedRoute's kid-friendly lock screen was rendering `<Navigate>`
+  inline, so Lyle never actually saw the "Time to check in" message —
+  replaced with a Sign in button.
+- Double-tap guard on "I'm done!" so fast taps can't insert duplicate
+  completion rows.
+- `window.confirm` on profile and lesson deletes.
+- Lesson picker filters out lessons already assigned to that day, so the
+  same lesson can't be scheduled twice on one date.
+- `schema.sql` backfilled with the `pdf_path` column added via migration.
+
+**Known drift from CLAUDE.md non-negotiables (acknowledged, not yet fixed):**
+
+- **Completions cascade-delete with assignments.** Non-negotiable #2 says
+  completions are append-only — a completion is a fact that happened. Today,
+  if Joelle unassigns a lesson, the FK `ON DELETE CASCADE` wipes any
+  completion that referenced it. In practice this won't hit during demo week
+  (Joelle won't unassign a lesson Lyle already did), but a proper fix needs
+  either soft-delete on assignments or snapshotting lesson state into the
+  completion row. Parked for post-demo.
+
 ### 2026-04-23 — Founding session
 
 *Captured from the planning conversation that produced these docs. Decisions are

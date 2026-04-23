@@ -159,51 +159,60 @@
   <header class="header">
     <h1>Wild Stewart Homeschool</h1>
     <div class="description">The Stewart family homeschool operating system — planning, library, and learner experience in one.</div>
-    <div class="meta">Updated 2026-04-23 · v1 in planning</div>
+    <div class="meta">Updated 2026-04-23 · v1 core loop live · Joelle demo hand-off</div>
   </header>
 
   <div class="column">
     <div class="column-header">
-      <div class="column-name">v1 Build — Full Loop</div>
-      <div class="column-sub">Vite + React + TS · Supabase · Cloudflare Pages</div>
+      <div class="column-name">Up Next — Demo Week &amp; Shakedown</div>
+      <div class="column-sub">Modules 1–4 live · Joelle hands-on test starts Apr 25</div>
     </div>
 
     <div class="priorities">
       <div class="priority">
         <div class="priority-num">1</div>
         <div class="priority-body">
-          <div class="priority-title">Scaffold the skeleton</div>
-          <div class="priority-note">Vite + React + TS + Tailwind running on Cloudflare Pages with Supabase client wired up. Two route shells (Joelle's view, learner view). Nothing else.</div>
+          <div class="priority-title">Real-world shakedown (Module 10)</div>
+          <div class="priority-note">Joelle plans the Apr 28–May 2 week Saturday night. Lyle uses the iPad through the week. Chad watches the seams — bugs get filed, rough edges tightened, rhythm observed.</div>
         </div>
       </div>
       <div class="priority">
         <div class="priority-num">2</div>
         <div class="priority-body">
-          <div class="priority-title">Auth + learner profiles</div>
-          <div class="priority-note">Joelle signs in with email/password. Creates Lyle's profile. iPad shows Netflix-style picker and routes to the right dashboard.</div>
+          <div class="priority-title">`reading` lesson type (Module 5)</div>
+          <div class="priority-note">Digraph → words → sentences flow as an interactive lesson type. Proves the data model handles structured content, not just free-form lessons pointing to PDFs.</div>
         </div>
       </div>
       <div class="priority">
         <div class="priority-num">3</div>
         <div class="priority-body">
-          <div class="priority-title">Data model + lesson catalog</div>
-          <div class="priority-note">Postgres schema with RLS locked down. Seed the 5-subject taxonomy. Joelle can see the (read-only) lesson catalog.</div>
+          <div class="priority-title">Fix the completions-cascade drift</div>
+          <div class="priority-note">Unassigning a lesson today wipes any completion that referenced it. CLAUDE.md non-negotiable #2 says completions are append-only. Fix with soft-delete on assignments or snapshot lesson state into the completion row.</div>
         </div>
       </div>
     </div>
 
-    <div class="backlog-header">Backlog</div>
+    <div class="backlog-header">Shipped this session</div>
     <ul class="backlog">
-      <li>Module 4 — `general` lesson type end-to-end (the full loop)</li>
-      <li>Module 5 — `reading` lesson type</li>
-      <li>Module 6 — `spelling` lesson type</li>
-      <li>Module 7 — calendar planning view for Joelle</li>
-      <li>Module 8 — resource library MVP (upload + attach)</li>
-      <li>Module 9 — minimal progress visibility (done / not-done)</li>
-      <li>Module 10 — real-world shakedown</li>
-      <li>Joelle's exact palette (activates at Module 7)</li>
+      <li>Module 1 — skeleton (Vite + React + TS + Tailwind + Cloudflare Pages)</li>
+      <li>Module 2 — auth + Netflix-style learner profile picker</li>
+      <li>Module 3 — Supabase schema + RLS on all four tables</li>
+      <li>Module 4 — `general` lesson type, full loop end-to-end</li>
+      <li>Module 7 (partial) — week calendar, no drag-and-drop yet</li>
+      <li>Module 8 (MVP+) — library with PDF upload + YouTube auto-embed</li>
+      <li>Module 9 (minimal) — ✓ Done indicator in Joelle's week view</li>
+      <li>`/welcome` 5-slide guide for Joelle hand-off</li>
+    </ul>
+
+    <div class="backlog-header" style="margin-top: 1.5rem;">Backlog</div>
+    <ul class="backlog">
+      <li>Module 6 — `spelling` lesson type (word jumble)</li>
+      <li>Calendar drag-and-drop (Module 7 completion)</li>
+      <li>Star / reward tracking (watch first whether Lyle cares)</li>
+      <li>Joelle's exact palette (activates at Module 7 polish)</li>
       <li>Logo and favicon (before v1 ships)</li>
       <li>Writing surface decision (after Joelle weighs in)</li>
+      <li>Month view (only if Joelle asks after 4+ weeks of week view)</li>
     </ul>
   </div>
 
@@ -217,24 +226,31 @@
   "updated": "2026-04-23",
   "columns": [
     {
-      "name": "v1 Build — Full Loop",
-      "sub": "Vite + React + TS · Supabase · Cloudflare Pages",
+      "name": "Up Next — Demo Week & Shakedown",
+      "sub": "Modules 1–4 live · Joelle hands-on test starts Apr 25",
       "priorities": [
-        { "title": "Scaffold the skeleton", "note": "Vite + React + TS + Tailwind running on Cloudflare Pages with Supabase client wired up. Two route shells (Joelle's view, learner view). Nothing else." },
-        { "title": "Auth + learner profiles", "note": "Joelle signs in with email/password. Creates Lyle's profile. iPad shows Netflix-style picker and routes to the right dashboard." },
-        { "title": "Data model + lesson catalog", "note": "Postgres schema with RLS locked down. Seed the 5-subject taxonomy. Joelle can see the (read-only) lesson catalog." }
+        { "title": "Real-world shakedown (Module 10)", "note": "Joelle plans the Apr 28–May 2 week Saturday night. Lyle uses the iPad through the week. Chad watches the seams — bugs get filed, rough edges tightened, rhythm observed." },
+        { "title": "`reading` lesson type (Module 5)", "note": "Digraph → words → sentences flow as an interactive lesson type. Proves the data model handles structured content, not just free-form lessons pointing to PDFs." },
+        { "title": "Fix the completions-cascade drift", "note": "Unassigning a lesson today wipes any completion that referenced it. CLAUDE.md non-negotiable #2 says completions are append-only. Fix with soft-delete on assignments or snapshot lesson state into the completion row." }
+      ],
+      "shipped": [
+        "Module 1 — skeleton (Vite + React + TS + Tailwind + Cloudflare Pages)",
+        "Module 2 — auth + Netflix-style learner profile picker",
+        "Module 3 — Supabase schema + RLS on all four tables",
+        "Module 4 — `general` lesson type, full loop end-to-end",
+        "Module 7 (partial) — week calendar, no drag-and-drop yet",
+        "Module 8 (MVP+) — library with PDF upload + YouTube auto-embed",
+        "Module 9 (minimal) — ✓ Done indicator in Joelle's week view",
+        "`/welcome` 5-slide guide for Joelle hand-off"
       ],
       "backlog": [
-        "Module 4 — `general` lesson type end-to-end (the full loop)",
-        "Module 5 — `reading` lesson type",
-        "Module 6 — `spelling` lesson type",
-        "Module 7 — calendar planning view for Joelle",
-        "Module 8 — resource library MVP (upload + attach)",
-        "Module 9 — minimal progress visibility (done / not-done)",
-        "Module 10 — real-world shakedown",
-        "Joelle's exact palette (activates at Module 7)",
+        "Module 6 — `spelling` lesson type (word jumble)",
+        "Calendar drag-and-drop (Module 7 completion)",
+        "Star / reward tracking (watch first whether Lyle cares)",
+        "Joelle's exact palette (activates at Module 7 polish)",
         "Logo and favicon (before v1 ships)",
-        "Writing surface decision (after Joelle weighs in)"
+        "Writing surface decision (after Joelle weighs in)",
+        "Month view (only if Joelle asks after 4+ weeks of week view)"
       ]
     }
   ]
