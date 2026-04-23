@@ -14,10 +14,6 @@ interface AssignmentRow {
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
-function toDateStr(d: Date): string {
-  return d.toISOString().slice(0, 10)
-}
-
 export default function WeekViewPage() {
   const { profileId } = useParams<{ profileId: string }>()
   const navigate = useNavigate()
