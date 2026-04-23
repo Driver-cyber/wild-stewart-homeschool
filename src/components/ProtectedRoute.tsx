@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -27,7 +27,13 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           <p className="text-learner-muted text-lg font-semibold mb-8">
             Ask a grown-up to sign in.
           </p>
-          <Navigate to="/login" state={{ from: location.pathname }} replace />
+          <Link
+            to="/login"
+            state={{ from: location.pathname }}
+            className="bg-learner-accent text-white font-bold text-lg px-8 py-4 rounded-2xl"
+          >
+            Sign in →
+          </Link>
         </div>
       )
     }
