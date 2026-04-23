@@ -106,14 +106,14 @@ export default function WeekPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-0 justify-between mb-8">
         <div>
           <h2 className="font-display text-3xl font-black text-adult-ink tracking-tight">
             This Week
           </h2>
           <p className="text-adult-muted mt-1">{weekLabel}</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end">
+        <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
           {profiles.length > 1 && (
             <select
               value={selectedProfile?.id ?? ''}
@@ -148,7 +148,8 @@ export default function WeekPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-5 gap-3">
+        <div className="overflow-x-auto -mx-1 px-1 pb-1">
+        <div className="grid grid-cols-5 gap-3" style={{ minWidth: '560px' }}>
           {weekDates.map((date, i) => {
             const dateStr = toDateStr(date)
             const dayRows = forDay(dateStr)
@@ -196,6 +197,7 @@ export default function WeekPage() {
               </div>
             )
           })}
+        </div>
         </div>
       )}
 

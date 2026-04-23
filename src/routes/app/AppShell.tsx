@@ -9,11 +9,11 @@ export default function AppShell() {
 
   return (
     <div className="min-h-screen bg-adult-bg font-sans">
-      <nav className="bg-white border-b border-adult-border px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <h1 className="font-display text-xl font-black text-adult-ink tracking-tight">
-          wild stewart homeschool
+      <nav className="bg-white border-b border-adult-border px-4 sm:px-6 py-4 flex items-center gap-3 sticky top-0 z-10">
+        <h1 className="font-display text-base sm:text-xl font-black text-adult-ink tracking-tight whitespace-nowrap flex-shrink-0">
+          wild stewart
         </h1>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 sm:gap-6 overflow-x-auto flex-1 min-w-0">
           {[
             { to: '/app/week',     label: 'This Week' },
             { to: '/app/library',  label: 'Library'   },
@@ -24,7 +24,7 @@ export default function AppShell() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `text-sm font-semibold transition-colors ${
+                `text-sm font-semibold transition-colors whitespace-nowrap flex-shrink-0 ${
                   isActive ? 'text-adult-accent' : 'text-adult-muted hover:text-adult-ink'
                 }`
               }
@@ -34,7 +34,7 @@ export default function AppShell() {
           ))}
           <button
             onClick={signOut}
-            className="text-sm text-adult-muted hover:text-adult-ink transition-colors"
+            className="text-sm text-adult-muted hover:text-adult-ink transition-colors whitespace-nowrap flex-shrink-0 ml-auto"
           >
             Sign out
           </button>

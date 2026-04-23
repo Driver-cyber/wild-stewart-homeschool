@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { SUBJECTS } from '../lib/types'
 
@@ -26,7 +26,7 @@ function SlideVision() {
       <p className="text-amber-200/70 text-xl font-medium mb-12 max-w-xl leading-relaxed">
         Your family's homeschool operating system — built for how you actually work.
       </p>
-      <div className="grid grid-cols-2 gap-6 w-full max-w-2xl text-left">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-2xl text-left">
         <div className="rounded-2xl p-6" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
           <div className="text-amber-400 font-bold text-sm uppercase tracking-wider mb-3">
             Joelle's side
@@ -101,46 +101,48 @@ function SlideWeek() {
   const sampleDays = [
     [{ title: 'SH words', subject: 'reading' }, { title: 'Adding to 20', subject: 'math' }],
     [{ title: 'Journal entry', subject: 'writing' }],
-    [{ title: 'Plants unit', subject: 'science' }, { title: 'Bob Books ch.2', subject: 'reading' }],
-    [{ title: 'Counting coins', subject: 'math' }],
-    [{ title: 'Map skills', subject: 'social_studies' }, { title: 'Rhyming words', subject: 'reading' }],
+    [{ title: 'Plants unit', subject: 'science' }, { title: 'Bob Books', subject: 'reading' }],
+    [{ title: 'Counting', subject: 'math' }],
+    [{ title: 'Map skills', subject: 'social_studies' }, { title: 'Rhyming', subject: 'reading' }],
   ]
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
   return (
-    <div className="flex flex-col items-center justify-center h-full px-8 max-w-4xl mx-auto w-full">
+    <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 max-w-4xl mx-auto w-full">
       <p className="text-amber-400 text-sm font-bold uppercase tracking-[0.2em] mb-4 text-center">
         Step 2
       </p>
-      <h2 className="font-display font-black text-5xl text-amber-100 tracking-tight mb-4 text-center">
+      <h2 className="font-display font-black text-4xl sm:text-5xl text-amber-100 tracking-tight mb-3 text-center">
         Plan Sunday Night
       </h2>
-      <p className="text-amber-200/70 text-lg mb-8 text-center max-w-xl">
+      <p className="text-amber-200/70 text-base sm:text-lg mb-6 text-center max-w-xl">
         Open "This Week," navigate to April 28, and click <strong className="text-amber-300">+ Add</strong> on each day to pull lessons from your library.
       </p>
 
-      {/* Mini week grid */}
-      <div className="grid grid-cols-5 gap-2 w-full">
-        {days.map((day, i) => (
-          <div key={day} className="rounded-xl p-3 flex flex-col gap-2" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
-            <div className="text-amber-400/80 text-xs font-bold uppercase tracking-wider">{day}</div>
-            {sampleDays[i].map((lesson, j) => {
-              const color = SUBJECTS.find(s => s.value === lesson.subject)?.color ?? '#888'
-              return (
-                <div
-                  key={j}
-                  className="rounded-lg px-2 py-1.5 text-white text-xs font-semibold leading-tight"
-                  style={{ backgroundColor: color }}
-                >
-                  {lesson.title}
-                </div>
-              )
-            })}
-            <div className="text-amber-200/30 text-xs text-center border border-dashed border-amber-200/20 rounded-lg py-1 mt-auto">
-              + Add
+      {/* Mini week grid — horizontal scroll on narrow screens */}
+      <div className="overflow-x-auto w-full">
+        <div className="grid grid-cols-5 gap-2" style={{ minWidth: '340px' }}>
+          {days.map((day, i) => (
+            <div key={day} className="rounded-xl p-2 sm:p-3 flex flex-col gap-1.5" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
+              <div className="text-amber-400/80 text-[10px] sm:text-xs font-bold uppercase tracking-wider">{day}</div>
+              {sampleDays[i].map((lesson, j) => {
+                const color = SUBJECTS.find(s => s.value === lesson.subject)?.color ?? '#888'
+                return (
+                  <div
+                    key={j}
+                    className="rounded-md px-1.5 py-1 text-white text-[10px] sm:text-xs font-semibold leading-tight line-clamp-2"
+                    style={{ backgroundColor: color }}
+                  >
+                    {lesson.title}
+                  </div>
+                )
+              })}
+              <div className="text-amber-200/30 text-[10px] sm:text-xs text-center border border-dashed border-amber-200/20 rounded-md py-1 mt-auto">
+                + Add
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -231,7 +233,7 @@ function SlideStatus({ onFinish }: { onFinish: () => void }) {
         Where we are
       </h2>
 
-      <div className="grid grid-cols-2 gap-6 w-full mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full mb-8 sm:mb-10">
         <div>
           <div className="text-green-400 font-bold text-sm uppercase tracking-wider mb-4">
             ✅ Ready now
@@ -275,6 +277,7 @@ export default function WelcomePage() {
   const navigate = useNavigate()
   const [current, setCurrent] = useState(0)
   const total = slides.length
+  const touchStartX = useRef(0)
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -303,9 +306,15 @@ export default function WelcomePage() {
     <div
       className="min-h-screen flex flex-col font-sans select-none"
       style={{ backgroundColor: '#2C1A0E', color: '#F5DEB3' }}
+      onTouchStart={e => { touchStartX.current = e.touches[0].clientX }}
+      onTouchEnd={e => {
+        const delta = e.changedTouches[0].clientX - touchStartX.current
+        if (delta < -50) goTo(current + 1)
+        if (delta > 50) goTo(current - 1)
+      }}
     >
       {/* Slide area */}
-      <div className="flex-1 flex flex-col justify-center" style={{ minHeight: 0 }}>
+      <div className="flex-1 overflow-y-auto flex flex-col justify-center py-4" style={{ minHeight: 0 }}>
         <div className="transition-opacity duration-300" key={current}>
           {slideContent[current]}
         </div>
