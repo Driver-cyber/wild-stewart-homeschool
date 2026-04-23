@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import confetti from 'canvas-confetti'
 import { supabase } from '../../lib/supabase'
 import type { Lesson, Profile } from '../../lib/types'
 import { SUBJECTS, subjectColor } from '../../lib/types'
@@ -10,6 +11,23 @@ interface AssignmentFull {
   profile_id: string
   lesson: Lesson
   profile: Profile
+}
+
+function fireConfetti(color: string) {
+  const burst = (origin: { x: number; y: number }) =>
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin,
+      colors: [color, '#ffffff', '#FFD700', '#FF69B4', color + 'aa'],
+      ticks: 300,
+      gravity: 0.8,
+      scalar: 1.2,
+    })
+
+  burst({ x: 0.5, y: 0.55 })
+  setTimeout(() => burst({ x: 0.3, y: 0.6 }), 150)
+  setTimeout(() => burst({ x: 0.7, y: 0.6 }), 300)
 }
 
 export default function LessonPage() {
@@ -56,6 +74,7 @@ export default function LessonPage() {
     if (!error) {
       setCompleted(true)
       setCelebrating(true)
+      fireConfetti(subjectColor(assignment.lesson.subject))
     }
   }
 
@@ -84,16 +103,26 @@ export default function LessonPage() {
         className="min-h-screen flex flex-col items-center justify-center font-rounded text-white p-8 text-center"
         style={{ backgroundColor: color }}
       >
-        <div className="text-9xl mb-6 animate-bounce">⭐</div>
-        <h1 className="font-display text-5xl font-black mb-4">
+        <div className="text-8xl mb-2 animate-bounce" style={{ animationDuration: '0.6s' }}>
+          ⭐
+        </div>
+        <div className="flex gap-4 mb-6 text-5xl">
+          <span className="animate-bounce" style={{ animationDelay: '0.1s', animationDuration: '0.7s' }}>🌟</span>
+          <span className="animate-bounce" style={{ animationDelay: '0.2s', animationDuration: '0.5s' }}>⭐</span>
+          <span className="animate-bounce" style={{ animationDelay: '0.05s', animationDuration: '0.8s' }}>🌟</span>
+        </div>
+        <h1 className="font-display text-5xl font-black mb-3 drop-shadow-lg">
           Amazing, {assignment.profile.name}!
         </h1>
-        <p className="text-2xl font-semibold opacity-80 mb-14">
-          You finished {assignment.lesson.title}!
+        <p className="text-2xl font-bold opacity-90 mb-2">
+          You finished
+        </p>
+        <p className="text-3xl font-black mb-14 drop-shadow">
+          {assignment.lesson.title}!
         </p>
         <button
           onClick={() => navigate(`/learn/${profileId}`)}
-          className="bg-white/20 hover:bg-white/30 active:bg-white/40 text-white font-bold text-xl px-10 py-5 rounded-2xl transition-colors active:scale-95"
+          className="bg-white/25 hover:bg-white/35 active:bg-white/45 active:scale-95 text-white font-black text-xl px-12 py-5 rounded-3xl transition-all shadow-lg"
         >
           Back to my week →
         </button>
@@ -107,7 +136,7 @@ export default function LessonPage() {
       <div className="text-white px-6 pt-8 pb-12" style={{ backgroundColor: color }}>
         <button
           onClick={() => navigate(`/learn/${profileId}`)}
-          className="text-white/70 hover:text-white text-3xl mb-8 block w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+          className="text-white/70 hover:text-white text-3xl mb-8 w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
         >
           ←
         </button>
@@ -134,7 +163,7 @@ export default function LessonPage() {
             href={assignment.lesson.resource_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block bg-white rounded-2xl p-5 mb-4 shadow-sm active:scale-98 transition-transform"
+            className="block bg-white rounded-2xl p-5 mb-4 shadow-sm transition-transform active:scale-[0.98]"
             style={{ borderLeft: `4px solid ${color}` }}
           >
             <div
@@ -158,7 +187,7 @@ export default function LessonPage() {
           ) : (
             <button
               onClick={markDone}
-              className="w-full text-white font-bold text-2xl py-6 rounded-2xl shadow-lg hover:opacity-90 active:scale-95 transition-all"
+              className="w-full text-white font-black text-2xl py-6 rounded-2xl shadow-lg hover:opacity-90 active:scale-95 transition-all"
               style={{ backgroundColor: color }}
             >
               I'm done! ⭐
