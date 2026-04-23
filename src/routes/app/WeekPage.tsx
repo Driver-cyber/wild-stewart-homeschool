@@ -3,31 +3,9 @@ import { supabase } from '../../lib/supabase'
 import type { Lesson, Profile } from '../../lib/types'
 import { SUBJECTS, subjectColor } from '../../lib/types'
 import { useAuth } from '../../contexts/AuthContext'
+import { toDateStr, getWeekMonday, addDays, formatShort } from '../../lib/dates'
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-
-function getWeekMonday(d: Date): Date {
-  const date = new Date(d)
-  const day = date.getDay()
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1)
-  date.setDate(diff)
-  date.setHours(0, 0, 0, 0)
-  return date
-}
-
-function addDays(d: Date, n: number): Date {
-  const date = new Date(d)
-  date.setDate(d.getDate() + n)
-  return date
-}
-
-function toDateStr(d: Date): string {
-  return d.toISOString().slice(0, 10)
-}
-
-function formatShort(d: Date): string {
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
 
 interface AssignmentRow {
   id: string

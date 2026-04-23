@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { Lesson, Profile } from '../../lib/types'
 import { SUBJECTS, subjectColor } from '../../lib/types'
+import { toDateStr, getWeekMonday, addDays } from '../../lib/dates'
 
 interface AssignmentRow {
   id: string
@@ -12,21 +13,6 @@ interface AssignmentRow {
 }
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-
-function getWeekMonday(d: Date): Date {
-  const date = new Date(d)
-  const day = date.getDay()
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1)
-  date.setDate(diff)
-  date.setHours(0, 0, 0, 0)
-  return date
-}
-
-function addDays(d: Date, n: number): Date {
-  const date = new Date(d)
-  date.setDate(d.getDate() + n)
-  return date
-}
 
 function toDateStr(d: Date): string {
   return d.toISOString().slice(0, 10)
