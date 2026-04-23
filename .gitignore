@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+
+# Environment — never commit real keys
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist
+
+# Editor
+.vscode
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
