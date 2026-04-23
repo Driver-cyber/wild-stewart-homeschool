@@ -18,6 +18,7 @@ export default function AppShell() {
             { to: '/app/week',     label: 'This Week' },
             { to: '/app/library',  label: 'Library'   },
             { to: '/app/profiles', label: 'Profiles'  },
+            { to: '/welcome',      label: 'Guide'     },
           ].map(({ to, label }) => (
             <NavLink
               key={to}
