@@ -57,41 +57,41 @@ function SlideLibrary() {
       <h2 className="font-display font-black text-5xl text-amber-100 tracking-tight mb-4 text-center">
         Build your Library
       </h2>
-      <p className="text-amber-200/70 text-lg mb-10 text-center max-w-xl">
-        Every lesson lives here before it goes on the calendar. Add a title, pick a subject, write what Lyle should do, and optionally paste a link.
+      <p className="text-amber-200/70 text-lg mb-8 text-center max-w-xl">
+        Every lesson lives here before it goes on the calendar. Add a title, subject, instructions — and attach a YouTube video or PDF worksheet.
       </p>
 
-      <div className="flex flex-wrap gap-3 justify-center mb-10">
-        {SUBJECTS.map(s => (
-          <div
-            key={s.value}
-            className="flex items-center gap-2.5 px-4 py-2.5 rounded-full font-bold text-white text-sm"
-            style={{ backgroundColor: s.color }}
-          >
-            <span>{s.label}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="w-full max-w-xl rounded-2xl p-6 text-left" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
-        <div className="grid grid-cols-3 gap-3 text-center">
+      <div className="w-full max-w-xl rounded-2xl p-5 mb-6" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
+        <div className="grid grid-cols-3 gap-4 text-center">
           {[
-            { step: '1', label: 'Library tab', sub: 'in the top nav' },
-            { step: '2', label: '+ Add lesson', sub: 'fill in the form' },
-            { step: '3', label: 'Save', sub: 'lives in the library forever' },
+            { icon: '📝', label: 'Instructions', sub: 'what Lyle should do' },
+            { icon: '▶', label: 'YouTube link', sub: 'auto-embeds in the lesson' },
+            { icon: '📄', label: 'PDF worksheet', sub: 'upload from Canva or Slides' },
           ].map(item => (
-            <div key={item.step} className="flex flex-col items-center gap-1">
+            <div key={item.label} className="flex flex-col items-center gap-1.5">
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm mb-1"
+                className="w-10 h-10 rounded-full flex items-center justify-center font-black text-lg mb-0.5"
                 style={{ backgroundColor: '#F2A24A', color: '#2C1A0E' }}
               >
-                {item.step}
+                {item.icon}
               </div>
               <div className="text-amber-100 font-bold text-sm">{item.label}</div>
               <div className="text-amber-200/50 text-xs">{item.sub}</div>
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2.5 justify-center">
+        {SUBJECTS.map(s => (
+          <div
+            key={s.value}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full font-bold text-white text-xs"
+            style={{ backgroundColor: s.color }}
+          >
+            <span>{s.label}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -190,16 +190,28 @@ function SlideLyle() {
         })}
       </div>
 
-      <p className="text-amber-200/60 text-base">
-        Taps a tile → reads the notes → opens any links → hits <strong className="text-white">"I'm done! ⭐"</strong> → confetti flies.
-      </p>
+      <div className="flex flex-col gap-2 text-sm text-left w-full max-w-sm">
+        {[
+          { icon: '👀', text: 'Reads the instructions' },
+          { icon: '▶', text: 'Watches the video — right in the app' },
+          { icon: '📄', text: 'Opens the worksheet with one tap' },
+          { icon: '⭐', text: 'Hits "I\'m done!" → confetti flies' },
+        ].map(step => (
+          <div key={step.icon} className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
+            <span className="text-xl w-7 text-center flex-shrink-0">{step.icon}</span>
+            <span className="text-amber-100/80 font-medium">{step.text}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 function SlideStatus({ onFinish }: { onFinish: () => void }) {
   const ready = [
-    'Lesson library — titles, subjects, notes, URLs',
+    'Lesson library — titles, subjects, instructions',
+    'PDF worksheet upload (Canva → export → done)',
+    'YouTube auto-embed — video plays in the lesson',
     'Weekly calendar planning view',
     "Lyle's learner view with colorful tiles",
     'Mark done + confetti celebration',
@@ -207,7 +219,6 @@ function SlideStatus({ onFinish }: { onFinish: () => void }) {
     'Learner profiles (add Lyle, add future siblings)',
   ]
   const coming = [
-    'PDF & file uploads',
     'Richer lesson types (reading flows, spelling)',
     'Star / reward tracking',
     'Calendar drag-and-drop',
