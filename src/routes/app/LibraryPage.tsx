@@ -15,7 +15,6 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
 
-  // form state
   const [title, setTitle] = useState('')
   const [subject, setSubject] = useState<Lesson['subject']>('reading')
   const [description, setDescription] = useState('')
@@ -88,6 +87,7 @@ export default function LibraryPage() {
   }
 
   async function handleDelete(lesson: Lesson) {
+    if (!window.confirm(`Delete "${lesson.title}"? This can't be undone.`)) return
     if (lesson.pdf_path) {
       await supabase.storage.from('resources').remove([lesson.pdf_path])
     }
