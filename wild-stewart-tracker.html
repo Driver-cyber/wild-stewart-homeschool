@@ -159,7 +159,7 @@
   <header class="header">
     <h1>Wild Stewart Homeschool</h1>
     <div class="description">The Stewart family homeschool operating system — planning, library, and learner experience in one.</div>
-    <div class="meta">Updated 2026-04-23 · v1 core loop live · responsive pass complete · Joelle demo hand-off</div>
+    <div class="meta">Updated 2026-04-24 · v1 core loop live · quiz builder + lesson editing shipped · Joelle demo ready</div>
   </header>
 
   <div class="column">
@@ -203,6 +203,14 @@
       <li>Module 9 (minimal) — ✓ Done indicator in Joelle's week view</li>
       <li>`/welcome` 5-slide guide for Joelle hand-off</li>
       <li>Mobile + iPad responsive pass — touch swipe on /welcome, nav overflow fix, calendar + form layouts</li>
+      <li>Quiz builder — MC + word order, up to 5 questions per lesson, JSONB storage</li>
+      <li>Quiz carousel in Lyle's view — tap-to-answer, word chips, confetti on completion</li>
+      <li>Lesson editing — pencil icon, pre-populated form, file replacement with storage cleanup</li>
+      <li>Second link per lesson — Link 1 + Link 2, both YouTube-embed-aware</li>
+      <li>Inline reference image field — displays between description and worksheet</li>
+      <li>Expanded file upload types — PDF, images, Word docs; images render inline</li>
+      <li>Clickable URLs in lesson instructions</li>
+      <li>Supabase Storage bucket public fix — bucket was private; SET public = true</li>
     </ul>
 
     <div class="backlog-header" style="margin-top: 1.5rem;">Backlog</div>
@@ -224,7 +232,7 @@
 {
   "project": "Wild Stewart Homeschool",
   "description": "The Stewart family homeschool operating system — planning, library, and learner experience in one.",
-  "updated": "2026-04-23-r2",
+  "updated": "2026-04-24",
   "columns": [
     {
       "name": "Up Next — Demo Week & Shakedown",
@@ -243,7 +251,15 @@
         "Module 8 (MVP+) — library with PDF upload + YouTube auto-embed",
         "Module 9 (minimal) — ✓ Done indicator in Joelle's week view",
         "`/welcome` 5-slide guide for Joelle hand-off",
-        "Mobile + iPad responsive pass — touch swipe on /welcome, nav overflow fix, calendar + form layouts"
+        "Mobile + iPad responsive pass — touch swipe on /welcome, nav overflow fix, calendar + form layouts",
+        "Quiz builder — MC + word order, up to 5 questions per lesson, JSONB storage",
+        "Quiz carousel in Lyle's view — tap-to-answer, word chips, confetti on completion",
+        "Lesson editing — pencil icon, pre-populated form, file replacement with storage cleanup",
+        "Second link per lesson — Link 1 + Link 2, both YouTube-embed-aware",
+        "Inline reference image field — displays between description and worksheet",
+        "Expanded file upload types — PDF, images, Word docs; images render inline",
+        "Clickable URLs in lesson instructions",
+        "Supabase Storage bucket public fix — bucket was private; SET public = true"
       ],
       "backlog": [
         "Module 6 — `spelling` lesson type (word jumble)",
