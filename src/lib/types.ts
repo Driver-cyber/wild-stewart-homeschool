@@ -7,6 +7,14 @@ export interface Profile {
   created_at: string
 }
 
+export interface QuizQuestion {
+  type: 'multiple_choice' | 'word_order'
+  question: string
+  options?: string[]
+  answer_index?: number
+  sentence?: string
+}
+
 export interface Lesson {
   id: string
   user_id: string
@@ -14,7 +22,10 @@ export interface Lesson {
   subject: Subject
   description: string | null
   resource_url: string | null
+  resource_url_2: string | null
   pdf_path: string | null
+  content_image_path: string | null
+  quiz_questions: QuizQuestion[] | null
   lesson_type: 'general'
   created_at: string
 }
