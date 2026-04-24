@@ -38,7 +38,15 @@ CREATE TABLE IF NOT EXISTS lessons (
   created_at    timestamptz NOT NULL DEFAULT now()
 );
 
--- Migration: ALTER TABLE lessons ADD COLUMN IF NOT EXISTS pdf_path text;
+-- Migrations: run these in the Supabase SQL editor
+-- ALTER TABLE lessons ADD COLUMN IF NOT EXISTS pdf_path text;
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS resource_url_2 text;
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS content_image_path text;
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS quiz_questions jsonb;
+
+-- Storage: in the Supabase dashboard → Storage, create a bucket named 'resources'
+-- with "Public bucket" enabled. This allows getPublicUrl() to work for PDFs and images.
+-- Without this bucket, file uploads and the "Open worksheet" button will return 404.
 
 ALTER TABLE lessons ENABLE ROW LEVEL SECURITY;
 
