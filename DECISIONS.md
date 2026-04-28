@@ -37,6 +37,85 @@ Module 10 (Real-World Shakedown) in CLAUDE.md.
 
 ## 📝 Decision Log
 
+### 2026-04-28 — Tracker and Galaxy housekeeping
+
+Tracker `updated` field was in a non-ISO format (`"2026-04-23-r2"`), causing the
+project-dashboard at garden.chadstewartcpa.com to show "NaN weeks ago". Fixed by
+setting `public = true` on the Supabase Storage bucket (same session) and pushing
+`"updated": "YYYY-MM-DD"` directly to main.
+
+Enriched the tracker's `shipped` array from flat strings to structured objects with
+`date`, `what`, `tags`, and `learned` fields for the dashboard's Galaxy tab. Added
+10 missing entries (quiz/editing features + pre-demo fixes + founding constitution),
+sorted newest-first by commit date. 19 entries total.
+
+---
+
+### 2026-04-24 — Lesson enrichment pass (quiz, editing, media, links)
+
+Joelle's session notes from Apr 23 captured five feature requests that were
+implemented and shipped in one pass, plus two bug fixes surfaced during the session.
+
+**Features shipped:**
+
+- **Quiz builder** — Any lesson can now have up to 5 quiz questions. Two types:
+  multiple choice (question + up to 4 options, radio to mark correct) and word
+  order (Joelle types the correct sentence; Lyle sees shuffled word chips to tap
+  into order). Stored as `quiz_questions jsonb` on the lessons table.
+
+- **Quiz carousel in Lyle's view** — When a lesson has quiz questions and isn't
+  yet completed, the "I'm done!" button is replaced by "Ready for the quiz? ✨".
+  One question at a time: MC uses big tappable option buttons (green correct /
+  red flash wrong, try again); word order uses tap-to-place word chips with a
+  "Check! ✓" button once all words are placed. Correct on the last question
+  fires confetti and the celebration screen — same reward, now earned.
+
+- **Lesson editing** — Pencil icon on each library card (hover to reveal).
+  Populates the form with all current values including existing file names, quiz
+  questions, and both links. Saves via UPDATE; replaces storage files when
+  swapped, cleans up the old ones.
+
+- **Second link per lesson** — Link 1 + Link 2, both YouTube-embed-aware. Both
+  render in Lyle's lesson view (embeds or link cards).
+
+- **Inline reference image** — Separate image upload on the lesson form. Displays
+  in Lyle's lesson view between the description and the worksheet — good for maps,
+  diagrams, reference charts. Stored as `content_image_path text` on lessons.
+
+- **Expanded file upload types** — Worksheet picker now accepts PDF, images, and
+  Word docs (not just PDF). Images uploaded to `pdf_path` render inline in the
+  lesson; PDFs and docs show the "Open worksheet" button.
+
+- **Clickable links in instructions** — URLs typed into the "Instructions for
+  Lyle" textarea are auto-detected and rendered as tappable links in the lesson
+  view.
+
+**Bug fixes:**
+
+- **Supabase Storage `resources` bucket not public** — `getPublicUrl()` was
+  generating correct URLs but the bucket had `public = false`, causing every
+  file access to return `{"error":"Bucket not found"}`. Fixed with:
+  `UPDATE storage.buckets SET public = true WHERE name = 'resources';`
+  Schema.sql now documents this requirement explicitly.
+
+- **Schema migration** — Three new columns added via SQL:
+  `resource_url_2 text`, `content_image_path text`, `quiz_questions jsonb`.
+
+**Design decisions:**
+
+- Word order uses **tap-to-select chips** rather than HTML drag-and-drop. Native
+  drag events on iPad touch are unreliable without a library; tap-to-place gives
+  the same mental model with reliable touch behavior.
+
+- Quiz is **required for completion** when present — "I'm done!" only appears on
+  lessons without a quiz. If Joelle needs to remove a quiz after the fact, she
+  can edit the lesson and toggle it off.
+
+- Word order shuffling is pre-computed at quiz start and stored in a ref, so
+  words don't re-shuffle on re-render mid-question.
+
+---
+
 ### 2026-04-23 — Mobile and iPad responsiveness pass
 
 Pre-demo audit of all screens against iPhone, iPad portrait, and Mac browser.
