@@ -224,7 +224,7 @@
 {
   "project": "Wild Stewart Homeschool",
   "description": "The Stewart family homeschool operating system — planning, library, and learner experience in one.",
-  "updated": "2026-04-24",
+  "updated": "2026-04-28",
   "columns": [
     {
       "name": "Up Next — Demo Week & Shakedown",
@@ -235,15 +235,109 @@
         { "title": "Fix the completions-cascade drift", "note": "Unassigning a lesson today wipes any completion that referenced it. CLAUDE.md non-negotiable #2 says completions are append-only. Fix with soft-delete on assignments or snapshot lesson state into the completion row." }
       ],
       "shipped": [
-        "Module 1 — skeleton (Vite + React + TS + Tailwind + Cloudflare Pages)",
-        "Module 2 — auth + Netflix-style learner profile picker",
-        "Module 3 — Supabase schema + RLS on all four tables",
-        "Module 4 — `general` lesson type, full loop end-to-end",
-        "Module 7 (partial) — week calendar, no drag-and-drop yet",
-        "Module 8 (MVP+) — library with PDF upload + YouTube auto-embed",
-        "Module 9 (minimal) — ✓ Done indicator in Joelle's week view",
-        "`/welcome` 5-slide guide for Joelle hand-off",
-        "Mobile + iPad responsive pass — touch swipe on /welcome, nav overflow fix, calendar + form layouts"
+        {
+          "date": "2026-04-24",
+          "what": "Fixed Supabase Storage resources bucket — was set private (public=false), causing all file URLs to return 404.",
+          "tags": ["defensive-coding"],
+          "learned": "getPublicUrl() constructs the URL regardless of bucket settings; the bucket-level public flag is what actually gates file retrieval."
+        },
+        {
+          "date": "2026-04-24",
+          "what": "URLs typed into lesson instructions are auto-detected and rendered as tappable links in Lyle's lesson view.",
+          "tags": ["ux", "mobile"]
+        },
+        {
+          "date": "2026-04-24",
+          "what": "Worksheet file picker expanded to PDF, images, and Word docs; uploaded images render inline instead of as download buttons.",
+          "tags": ["ux"]
+        },
+        {
+          "date": "2026-04-24",
+          "what": "Inline image field added to lessons — displays between instructions and worksheet for maps, diagrams, and reference charts.",
+          "tags": ["ux", "mobile"]
+        },
+        {
+          "date": "2026-04-24",
+          "what": "Added a second URL field to lessons; both links are YouTube-embed-aware and render in Lyle's lesson view.",
+          "tags": ["ux"]
+        },
+        {
+          "date": "2026-04-24",
+          "what": "Lesson editing via pencil icon — form pre-populates all fields including quiz questions, and replaces storage files on swap.",
+          "tags": ["ux"]
+        },
+        {
+          "date": "2026-04-24",
+          "what": "Quiz carousel in Lyle's lesson view — tap-to-answer multiple choice and tap-word-chip ordering, confetti fires on last correct answer.",
+          "tags": ["ux", "animation", "mobile"],
+          "learned": "Tap-to-place word chips beat HTML drag-and-drop on iPad — native touch drag events are unreliable without a library."
+        },
+        {
+          "date": "2026-04-24",
+          "what": "Quiz builder on lessons: multiple-choice and word-order question types, up to 5 questions per lesson, stored as JSONB.",
+          "tags": ["ux", "architecture"]
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Full mobile and iPad responsive pass: touch swipe on /welcome, horizontal-scroll Mon–Fri calendar, stacked form layouts, nav overflow fix.",
+          "tags": ["mobile", "ux", "css"],
+          "learned": "Horizontal scroll instead of layout collapse for 5-column grids preserves the Mon–Fri mental model on small screens."
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Five-slide dark-walnut walkthrough at /welcome for Joelle onboarding and demo hand-off.",
+          "tags": ["ux", "docs"]
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Pre-demo bug fixes: ProtectedRoute auth screen, double-tap guard on 'I'm done!', delete confirmations, duplicate assignment filter.",
+          "tags": ["defensive-coding", "ux"]
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Module 9 (minimal): done/not-done indicator per scheduled lesson in Joelle's week view — held firm at that scope.",
+          "tags": ["ux"],
+          "learned": "Naming the scope boundary explicitly ('literally that, nothing more') is what keeps progress views from expanding indefinitely."
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Module 8 (MVP+): lesson library with PDF upload to Supabase Storage and YouTube URL auto-embed in the learner view.",
+          "tags": ["ux", "mobile"],
+          "learned": "YouTube auto-embed was a deliberate single-platform bet — it's where the educational content Joelle will actually use lives."
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Module 7 (partial): Mon–Fri week calendar with per-day lesson assignment modal and learner profile selector.",
+          "tags": ["ux", "calendar"]
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Module 4: full general lesson loop — Joelle creates and schedules, Lyle completes, confetti fires.",
+          "tags": ["ux", "animation"]
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Module 3: Postgres schema for profiles, lessons, assignments, and completions with row-level security on every table.",
+          "tags": ["architecture", "defensive-coding"],
+          "learned": "RLS-first means access control lives at the database layer — app code can't accidentally leak cross-profile data."
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Module 2: email/password auth and Netflix-style learner profile picker — one household login, kids are profiles not users.",
+          "tags": ["architecture", "ux"],
+          "learned": "Modeling kids as profiles under one authenticated user matches how a family works and keeps RLS policies simple."
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Module 1: Vite + React + TypeScript + Tailwind scaffold deployed to Cloudflare Pages with Supabase client wired up.",
+          "tags": ["architecture", "cloudflare", "founding"]
+        },
+        {
+          "date": "2026-04-23",
+          "what": "Founding project constitution: CLAUDE.md, DECISIONS.md, and visual tracker established before writing any product code.",
+          "tags": ["founding", "docs", "architecture"],
+          "learned": "Writing out-of-scope rules, user profiles, and design principles before any code gives every future decision a north star."
+        }
       ],
       "backlog": [
         "Module 6 — `spelling` lesson type (word jumble)",
