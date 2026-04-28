@@ -37,6 +37,20 @@ Module 10 (Real-World Shakedown) in CLAUDE.md.
 
 ## 📝 Decision Log
 
+### 2026-04-28 — Tracker and Galaxy housekeeping
+
+Tracker `updated` field was in a non-ISO format (`"2026-04-23-r2"`), causing the
+project-dashboard at garden.chadstewartcpa.com to show "NaN weeks ago". Fixed by
+setting `public = true` on the Supabase Storage bucket (same session) and pushing
+`"updated": "YYYY-MM-DD"` directly to main.
+
+Enriched the tracker's `shipped` array from flat strings to structured objects with
+`date`, `what`, `tags`, and `learned` fields for the dashboard's Galaxy tab. Added
+10 missing entries (quiz/editing features + pre-demo fixes + founding constitution),
+sorted newest-first by commit date. 19 entries total.
+
+---
+
 ### 2026-04-24 — Lesson enrichment pass (quiz, editing, media, links)
 
 Joelle's session notes from Apr 23 captured five feature requests that were
@@ -74,7 +88,7 @@ implemented and shipped in one pass, plus two bug fixes surfaced during the sess
 
 - **Clickable links in instructions** — URLs typed into the "Instructions for
   Lyle" textarea are auto-detected and rendered as tappable links in the lesson
-  view. Useful for quick reference URLs without needing a separate link field.
+  view.
 
 **Bug fixes:**
 
