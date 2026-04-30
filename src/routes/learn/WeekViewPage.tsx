@@ -21,7 +21,16 @@ export default function WeekViewPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState<'list' | 'galaxy'>('list')
+  const [view, setView] = useState<'list' | 'galaxy'>(() => {
+    if (!profileId) return 'list'
+    return localStorage.getItem(`learner_view_${profileId}`) === 'galaxy'
+      ? 'galaxy'
+      : 'list'
+  })
+
+  useEffect(() => {
+    if (profileId) localStorage.setItem(`learner_view_${profileId}`, view)
+  }, [view, profileId])
 
   const weekStart = getWeekMonday(new Date())
   const weekDates = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i))

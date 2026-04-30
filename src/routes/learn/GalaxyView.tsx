@@ -66,6 +66,12 @@ export default function GalaxyView({
 }: Props) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ w: 800, h: 540 })
+  const [warpTarget, setWarpTarget] = useState<{
+    id: string
+    originX: number
+    originY: number
+  } | null>(null)
+  const warpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const el = stageRef.current
@@ -78,7 +84,21 @@ export default function GalaxyView({
     return () => ro.disconnect()
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (warpTimerRef.current) clearTimeout(warpTimerRef.current)
+    }
+  }, [])
+
   const [stars] = useState(() => generateStars(150))
+
+  function handlePlanetTap(id: string, px: number, py: number) {
+    if (warpTarget) return
+    const originX = size.w > 0 ? (px / size.w) * 100 : 50
+    const originY = size.h > 0 ? (py / size.h) * 100 : 50
+    setWarpTarget({ id, originX, originY })
+    warpTimerRef.current = setTimeout(() => onTapAssignment(id), 950)
+  }
 
   const layout = useMemo(() => {
     const { w, h } = size
@@ -134,7 +154,15 @@ export default function GalaxyView({
         </button>
       </div>
 
-      <div ref={stageRef} className="galaxy-stage">
+      <div
+        ref={stageRef}
+        className={`galaxy-stage${warpTarget ? ' warping' : ''}`}
+        style={
+          warpTarget
+            ? { transformOrigin: `${warpTarget.originX}% ${warpTarget.originY}%` }
+            : undefined
+        }
+      >
         {stars.map(s => (
           <div
             key={s.id}
@@ -184,7 +212,7 @@ export default function GalaxyView({
                 background: `radial-gradient(circle at 32% 30%, ${palette.glow} 0%, ${palette.core} 60%, ${palette.core} 100%)`,
                 boxShadow: `0 0 ${pSize * 0.7}px ${palette.core}66, inset -${pSize * 0.1}px -${pSize * 0.15}px ${pSize * 0.4}px rgba(0,0,0,0.35)`,
               }}
-              onClick={() => onTapAssignment(asg.id)}
+              onClick={() => handlePlanetTap(asg.id, px, py)}
             >
               <span className="planet-glyph">
                 <span className="subj">{subj?.label}</span>

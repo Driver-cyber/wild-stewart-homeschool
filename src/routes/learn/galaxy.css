@@ -14,7 +14,9 @@
   position: absolute;
   inset: 0;
   transform-origin: 50% 50%;
+  transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1);
 }
+.galaxy-stage.warping { transform: scale(8) translateZ(0); }
 
 /* Star field */
 .star {
@@ -22,6 +24,12 @@
   background: #fff;
   border-radius: 50%;
   pointer-events: none;
+  transform-origin: 50% 50%;
+  transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.5s ease;
+}
+.galaxy-stage.warping .star {
+  transform: scaleY(40) translateY(0);
+  opacity: 0.6;
 }
 .star.s1 { width: 1px; height: 1px; opacity: 0.45; }
 .star.s2 { width: 2px; height: 2px; opacity: 0.7; }
@@ -85,7 +93,9 @@
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: opacity 0.4s ease;
 }
+.galaxy-stage.warping .planet-glyph { opacity: 0; }
 .planet-glyph .subj {
   display: block;
   font-size: 9.5px;
