@@ -100,6 +100,7 @@ export default function WeekPage() {
 
   const today = toDateStr(new Date())
   const weekLabel = `${formatShort(weekStart)} – ${formatShort(weekEnd)}, ${weekStart.getFullYear()}`
+  const totalDone = assignments.filter(a => a.completed).length
 
   if (profilesLoading) return <p className="text-adult-muted">Loading…</p>
 
@@ -111,10 +112,17 @@ export default function WeekPage() {
           <h2 className="font-display text-3xl font-black text-adult-ink tracking-tight">
             This Week
           </h2>
-          <p className="text-adult-muted mt-1">{weekLabel}</p>
+          <p className="text-adult-muted mt-1">
+            {weekLabel}
+            {assignments.length > 0 && (
+              <span className="ml-2 text-adult-ink font-semibold">
+                · {totalDone} of {assignments.length} done
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
-          {profiles.length > 1 && (
+          {profiles.length > 0 && (
             <select
               value={selectedProfile?.id ?? ''}
               onChange={e =>
