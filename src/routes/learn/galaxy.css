@@ -149,3 +149,28 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
+
+/* Spaceship sprite — outside .galaxy-stage so it doesn't get scaled by warp */
+.galaxy-ship {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
+  margin-top: -18px;
+  font-size: 28px;
+  line-height: 36px;
+  text-align: center;
+  z-index: 4;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px rgba(180, 220, 255, 0.5));
+  transition:
+    left 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.galaxy-ship.idle {
+  animation: ship-bob 3.5s ease-in-out infinite;
+}
+@keyframes ship-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}

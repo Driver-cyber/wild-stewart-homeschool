@@ -66,6 +66,7 @@ export default function GalaxyView({
 }: Props) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ w: 800, h: 540 })
+  const [shipPos, setShipPos] = useState<{ px: number; py: number } | null>(null)
   const [warpTarget, setWarpTarget] = useState<{
     id: string
     originX: number
@@ -93,11 +94,14 @@ export default function GalaxyView({
   const [stars] = useState(() => generateStars(150))
 
   function handlePlanetTap(id: string, px: number, py: number) {
-    if (warpTarget) return
-    const originX = size.w > 0 ? (px / size.w) * 100 : 50
-    const originY = size.h > 0 ? (py / size.h) * 100 : 50
-    setWarpTarget({ id, originX, originY })
-    warpTimerRef.current = setTimeout(() => onTapAssignment(id), 950)
+    if (shipPos) return
+    setShipPos({ px, py })
+    warpTimerRef.current = setTimeout(() => {
+      const originX = size.w > 0 ? (px / size.w) * 100 : 50
+      const originY = size.h > 0 ? (py / size.h) * 100 : 50
+      setWarpTarget({ id, originX, originY })
+      warpTimerRef.current = setTimeout(() => onTapAssignment(id), 950)
+    }, 400)
   }
 
   const layout = useMemo(() => {
@@ -152,6 +156,17 @@ export default function GalaxyView({
         >
           ← Profiles
         </button>
+      </div>
+
+      <div
+        className={`galaxy-ship${shipPos ? '' : ' idle'}`}
+        style={{
+          left: shipPos ? `${shipPos.px}px` : '50%',
+          top: shipPos ? `${shipPos.py}px` : '50%',
+        }}
+        aria-hidden
+      >
+        🚀
       </div>
 
       <div
