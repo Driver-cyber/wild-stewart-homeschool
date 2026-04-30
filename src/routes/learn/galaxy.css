@@ -153,12 +153,12 @@
 /* Spaceship sprite — outside .galaxy-stage so it doesn't get scaled by warp */
 .galaxy-ship {
   position: absolute;
-  width: 36px;
-  height: 36px;
-  margin-left: -18px;
-  margin-top: -18px;
-  font-size: 28px;
-  line-height: 36px;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  margin-top: -22px;
+  font-size: 32px;
+  line-height: 44px;
   text-align: center;
   z-index: 4;
   pointer-events: none;
@@ -168,9 +168,161 @@
     top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .galaxy-ship.idle {
+  pointer-events: auto;
+  cursor: pointer;
   animation: ship-bob 3.5s ease-in-out infinite;
+}
+.galaxy-ship.idle:hover {
+  filter: drop-shadow(0 0 16px rgba(180, 220, 255, 0.8));
 }
 @keyframes ship-bob {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Command Center modal */
+.cc-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 7, 15, 0.55);
+  backdrop-filter: blur(8px);
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 16px;
+  animation: cc-fade-in 0.2s ease;
+}
+@keyframes cc-fade-in { from { opacity: 0 } to { opacity: 1 } }
+
+.cc-panel {
+  position: relative;
+  width: min(94%, 380px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  background: rgba(20, 26, 40, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 22px 22px 18px;
+  color: rgba(255,255,255,0.92);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  animation: cc-rise 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes cc-rise {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cc-close {
+  position: absolute;
+  top: 12px; right: 14px;
+  width: 30px; height: 30px;
+  background: rgba(255,255,255,0.08);
+  border: 0;
+  border-radius: 50%;
+  color: rgba(255,255,255,0.7);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cc-close:hover { background: rgba(255,255,255,0.18); color: #fff; }
+
+.cc-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+.cc-subtitle {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.cc-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.cc-section:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+.cc-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.cc-done-empty {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  padding: 10px 0;
+}
+
+.cc-done-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  margin-bottom: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cc-done-item:hover { background: rgba(255,255,255,0.09); }
+.cc-done-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+.cc-done-title { flex: 1; }
+.cc-done-check { color: rgba(180, 230, 200, 0.9); font-weight: 700; }
+
+.cc-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: rgba(255,255,255,0.92);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cc-action:hover { background: rgba(255,255,255,0.1); }
+.cc-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.cc-action:disabled:hover { background: rgba(255,255,255,0.05); }
+.cc-action .arrow { color: rgba(255,255,255,0.4); }
+.cc-action .badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  color: rgba(255,255,255,0.6);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }

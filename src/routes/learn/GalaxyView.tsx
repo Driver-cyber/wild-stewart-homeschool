@@ -72,6 +72,7 @@ export default function GalaxyView({
     originX: number
     originY: number
   } | null>(null)
+  const [commandOpen, setCommandOpen] = useState(false)
   const warpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -143,18 +144,14 @@ export default function GalaxyView({
         </span>
       </div>
 
-      <div className="absolute top-3 right-3 z-10 flex gap-2">
+      <div className="absolute top-3 right-3 z-10">
         <button
-          onClick={onSwitchToList}
-          className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/85 text-xs font-semibold border border-white/15 backdrop-blur-sm transition-colors"
+          onClick={() => setCommandOpen(true)}
+          aria-label="Open command center"
+          className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/90 text-xs font-bold border border-white/15 backdrop-blur-sm transition-colors flex items-center gap-1.5"
         >
-          List view
-        </button>
-        <button
-          onClick={onBack}
-          className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/85 text-xs font-semibold border border-white/15 backdrop-blur-sm transition-colors"
-        >
-          ← Profiles
+          <span>⚙</span>
+          <span>Command</span>
         </button>
       </div>
 
@@ -164,7 +161,9 @@ export default function GalaxyView({
           left: shipPos ? `${shipPos.px}px` : '50%',
           top: shipPos ? `${shipPos.py}px` : '50%',
         }}
-        aria-hidden
+        role={shipPos ? undefined : 'button'}
+        aria-label={shipPos ? undefined : 'Open command center'}
+        onClick={shipPos ? undefined : () => setCommandOpen(true)}
       >
         🚀
       </div>
@@ -244,6 +243,95 @@ export default function GalaxyView({
           </div>
         )}
       </div>
+
+      {commandOpen && (
+        <div
+          className="cc-backdrop"
+          onClick={e => {
+            if (e.target === e.currentTarget) setCommandOpen(false)
+          }}
+        >
+          <div className="cc-panel">
+            <button
+              className="cc-close"
+              aria-label="Close command center"
+              onClick={() => setCommandOpen(false)}
+            >
+              ×
+            </button>
+            <div className="cc-title">Command Center</div>
+            <div className="cc-subtitle">{profile.name}'s ship</div>
+
+            <div className="cc-section">
+              <div className="cc-section-label">
+                Done this week · {totalDone} of {assignments.length}
+              </div>
+              {totalDone === 0 ? (
+                <div className="cc-done-empty">
+                  Nothing finished yet — tap a planet to get started!
+                </div>
+              ) : (
+                assignments
+                  .filter(a => a.completed)
+                  .map(a => {
+                    const palette = paletteFor(a.lesson.subject)
+                    const subj = SUBJECTS.find(s => s.value === a.lesson.subject)
+                    return (
+                      <button
+                        key={a.id}
+                        className="cc-done-item"
+                        onClick={() => {
+                          setCommandOpen(false)
+                          onTapAssignment(a.id)
+                        }}
+                      >
+                        <span
+                          className="cc-done-dot"
+                          style={{ background: palette.core, color: palette.core }}
+                        />
+                        <span className="cc-done-title">
+                          <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, marginRight: 6 }}>
+                            {subj?.label}
+                          </span>
+                          {a.lesson.title}
+                        </span>
+                        <span className="cc-done-check">✓</span>
+                      </button>
+                    )
+                  })
+              )}
+            </div>
+
+            <div className="cc-section">
+              <div className="cc-section-label">Settings</div>
+              <button
+                className="cc-action"
+                onClick={() => {
+                  setCommandOpen(false)
+                  onSwitchToList()
+                }}
+              >
+                <span>Switch to list view</span>
+                <span className="arrow">→</span>
+              </button>
+              <button
+                className="cc-action"
+                onClick={() => {
+                  setCommandOpen(false)
+                  onBack()
+                }}
+              >
+                <span>← Back to profiles</span>
+                <span className="arrow"></span>
+              </button>
+              <button className="cc-action" disabled>
+                <span>Customize spaceship</span>
+                <span className="badge">Soon</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
