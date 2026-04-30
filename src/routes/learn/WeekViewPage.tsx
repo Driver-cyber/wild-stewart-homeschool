@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import type { Lesson, Profile } from '../../lib/types'
 import { SUBJECTS, subjectColor } from '../../lib/types'
 import { toDateStr, getWeekMonday, addDays } from '../../lib/dates'
+import GalaxyView from './GalaxyView'
 
 interface AssignmentRow {
   id: string
@@ -20,6 +21,7 @@ export default function WeekViewPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [view, setView] = useState<'list' | 'galaxy'>('list')
 
   const weekStart = getWeekMonday(new Date())
   const weekDates = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i))
@@ -79,6 +81,18 @@ export default function WeekViewPage() {
     )
   }
 
+  if (view === 'galaxy' && profile) {
+    return (
+      <GalaxyView
+        profile={profile}
+        assignments={assignments}
+        onTapAssignment={id => navigate(`/learn/${profileId}/${id}`)}
+        onBack={() => navigate('/learn')}
+        onSwitchToList={() => setView('list')}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-learner-bg font-rounded pb-12">
       {/* Header */}
@@ -95,7 +109,7 @@ export default function WeekViewPage() {
         >
           {profile?.avatar_emoji}
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="font-display text-2xl font-black text-learner-ink leading-tight">
             {profile?.name}'s Week
           </h1>
@@ -105,6 +119,13 @@ export default function WeekViewPage() {
             </p>
           )}
         </div>
+        <button
+          onClick={() => setView('galaxy')}
+          aria-label="Switch to galaxy view"
+          className="w-11 h-11 rounded-full flex items-center justify-center text-2xl shadow-sm flex-shrink-0 bg-gradient-to-br from-indigo-900 to-slate-900 hover:scale-105 active:scale-95 transition-transform"
+        >
+          🌌
+        </button>
       </div>
 
       {/* Day sections */}
