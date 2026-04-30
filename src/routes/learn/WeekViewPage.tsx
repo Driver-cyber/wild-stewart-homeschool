@@ -66,9 +66,10 @@ export default function WeekViewPage() {
   }, [profileId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const forDay = (dateStr: string) =>
-    assignments.filter(a => a.scheduled_date === dateStr)
+    assignments.filter(a => a.scheduled_date === dateStr && !a.completed)
 
-  const totalDone = assignments.filter(a => a.completed).length
+  const completedAssignments = assignments.filter(a => a.completed)
+  const totalDone = completedAssignments.length
 
   if (loading) {
     return (
@@ -138,15 +139,10 @@ export default function WeekViewPage() {
                       className="relative rounded-3xl p-5 text-left shadow-sm active:scale-95 transition-transform min-h-[100px] flex flex-col justify-between"
                       style={{ backgroundColor: subjectColor(a.lesson.subject) }}
                     >
-                      {a.completed && (
-                        <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/30 flex items-center justify-center text-white text-lg font-bold">
-                          ✓
-                        </div>
-                      )}
                       <div className="text-white/70 text-xs font-bold uppercase tracking-wider mb-2">
                         {subj?.label}
                       </div>
-                      <div className="text-white font-bold text-base leading-snug pr-8">
+                      <div className="text-white font-bold text-base leading-snug">
                         {a.lesson.title}
                       </div>
                     </button>
@@ -156,6 +152,46 @@ export default function WeekViewPage() {
             </div>
           )
         })}
+
+        {completedAssignments.length > 0 && (
+          <div className="pt-6 border-t border-black/10">
+            <div className="flex items-baseline gap-2 mb-3 px-1">
+              <h2 className="text-base font-bold text-learner-muted">
+                Done this week
+              </h2>
+              <span className="text-learner-muted text-sm font-medium">
+                {completedAssignments.length}{' '}
+                {completedAssignments.length === 1 ? 'lesson' : 'lessons'} ✓
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {completedAssignments.map(a => {
+                const subj = SUBJECTS.find(s => s.value === a.lesson.subject)
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => navigate(`/learn/${profileId}/${a.id}`)}
+                    className="relative rounded-2xl p-3 text-left shadow-sm active:scale-95 transition-transform min-h-[68px] flex flex-col justify-between"
+                    style={{
+                      backgroundColor: subjectColor(a.lesson.subject),
+                      opacity: 0.55,
+                    }}
+                  >
+                    <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/40 flex items-center justify-center text-white text-sm font-bold">
+                      ✓
+                    </div>
+                    <div className="text-white/80 text-[10px] font-bold uppercase tracking-wider">
+                      {subj?.label}
+                    </div>
+                    <div className="text-white font-semibold text-sm leading-snug pr-7">
+                      {a.lesson.title}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {assignments.length === 0 && (
           <div className="text-center py-24">
