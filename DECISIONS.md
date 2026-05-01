@@ -37,6 +37,88 @@ Module 10 (Real-World Shakedown) in CLAUDE.md.
 
 ## 📝 Decision Log
 
+### 2026-05-01 — Galaxy navigation and customizable spaceships
+
+Three feature requests from Joelle's Apr 30 session notes were implemented and
+shipped as PR #6 — a substantial expansion of the learner experience beyond
+"list of tiles."
+
+**Features shipped:**
+
+- **Completed lessons section** — In the learner week view, completed lessons
+  no longer mix with pending ones; they sink into a dimmed "Done this week"
+  collection at the bottom (still tappable to revisit). Prep view now always
+  shows the profile selector and adds an "X of Y done" summary alongside the
+  week label.
+
+- **Galaxy navigation** — Alt view for the learner, toggled by a 🌌 button in
+  the week header. Each lesson is a planet placed on one of two elliptical
+  orbit rings around a central sun. Subject-keyed color palette. Planets sized
+  44px when the lesson has a quiz, 32px otherwise. Completed lessons render
+  with `.planet.dim` (45% opacity, desaturated). View choice persists per
+  profile in localStorage so the kid lands back in galaxy after finishing a
+  lesson. Tap a planet → ship flies to it (400ms) → stage scales 8× over 950ms
+  → lesson page loads. Stars streak during the warp; planet glyphs fade.
+
+- **Command Center modal** — Replaces the old chrome buttons in galaxy view
+  with a single ⚙ button (and the ship sprite is also clickable when idle).
+  Opens a glassmorphism panel anchored top-right with: a Done-this-week list
+  (each row tappable to revisit), Switch-to-list-view, Back-to-profiles, and
+  Customize-spaceship action. Galaxy chrome is now minimal — HUD title plus
+  one button.
+
+- **Customizable spaceship profiles** — New `spaceship_config jsonb` column on
+  profiles. Hand-coded SVG renderer with four customizable dimensions:
+  hull (round / classic / angular), color (8-preset palette), engine
+  (single / twin / plasma), decal (none / star / lightning / heart / flame /
+  moon). Customizer page at `/learn/:profileId/customize` with a 170px live
+  preview at the top and four option sections — each option button is itself
+  a mini-Spaceship rendered with that variant applied to the kid's current
+  config. Profile picker now shows the saved ship as the avatar (on a
+  space-themed dark gradient plate) instead of the emoji circle, with an
+  "✨ Edit ship" pill below the name. Galaxy ship sprite is now `<Spaceship>`
+  driven by the same config — replaces the 🚀 emoji placeholder.
+
+**Schema migration (run in Supabase SQL editor):**
+```sql
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS spaceship_config jsonb;
+```
+
+**Architectural decisions:**
+
+- **Ship lives outside `.galaxy-stage`.** If the ship were inside the stage,
+  the warp transform (`scale(8)`) would also scale the ship. Keeping it in
+  `.galaxy-wrap` instead means the ship arrives at the planet's coordinates
+  and stays there while the camera zooms past — a natural "ship dropped me
+  off, now we're entering the lesson" feel.
+
+- **Mini-ship previews in the customizer.** Each option tile renders a full
+  Spaceship with that single dimension changed (rest of config held). Costs
+  more SVGs to render but means the kid sees what each choice looks like on
+  *their* ship, not a generic template. Worth it for a kid-facing customizer.
+
+- **View preference persisted per profile.** localStorage key
+  `learner_view_${profileId}` stores `'list'` or `'galaxy'`. Kid finishes a
+  lesson, navigates back, lands in whichever view they were using — no
+  re-toggling.
+
+- **Default ship config.** When `spaceship_config` is null (un-customized
+  profile), the Spaceship component falls back to `DEFAULT_SHIP` (classic
+  hull, sky blue, single engine, star decal) so galaxy view always has a
+  ship at center even before the kid customizes.
+
+- **Disabled "Soon" placeholder removed.** Command Center's previously-
+  disabled "Customize spaceship" row is now active and routes to the
+  customizer. No half-finished UI.
+
+**Cleanup in the same pass:**
+- `.env.local.save` (a nano emergency-save artifact) was accidentally
+  committed during local setup. Removed and gitignored. The `anon` key it
+  contained is publishable by design — Vite inlines it into the browser
+  bundle, RLS does the actual access control — so no rotation needed.
+
+---
+
 ### 2026-04-28 — Tracker and Galaxy housekeeping
 
 Tracker `updated` field was in a non-ISO format (`"2026-04-23-r2"`), causing the
