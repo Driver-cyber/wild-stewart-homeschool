@@ -159,7 +159,7 @@
   <header class="header">
     <h1>Wild Stewart Homeschool</h1>
     <div class="description">The Stewart family homeschool operating system — planning, library, and learner experience in one.</div>
-    <div class="meta">Updated 2026-04-28 · v1 loop live · quiz + editing + enriched tracker · Joelle demo ready</div>
+    <div class="meta">Updated 2026-05-01 · Galaxy nav + customizable ships live · v1+ surface area</div>
   </header>
 
   <div class="column">
@@ -224,17 +224,35 @@
 {
   "project": "Wild Stewart Homeschool",
   "description": "The Stewart family homeschool operating system — planning, library, and learner experience in one.",
-  "updated": "2026-04-28",
+  "updated": "2026-05-01",
   "columns": [
     {
-      "name": "Up Next — Demo Week & Shakedown",
-      "sub": "Modules 1–4 live · Joelle hands-on test starts Apr 25",
+      "name": "Up Next — Polish & Backlog",
+      "sub": "v1 loop + galaxy + ships shipped · real-world week running",
       "priorities": [
-        { "title": "Real-world shakedown (Module 10)", "note": "Joelle plans the Apr 28–May 2 week Saturday night. Lyle uses the iPad through the week. Chad watches the seams — bugs get filed, rough edges tightened, rhythm observed." },
+        { "title": "Real-world shakedown (Module 10)", "note": "Joelle planned Apr 28–May 2; week is in flight. Watching the seams as Lyle uses galaxy view + ships in actual sessions. Bugs and rough edges get filed as they appear." },
         { "title": "`reading` lesson type (Module 5)", "note": "Digraph → words → sentences flow as an interactive lesson type. Proves the data model handles structured content, not just free-form lessons pointing to PDFs." },
         { "title": "Fix the completions-cascade drift", "note": "Unassigning a lesson today wipes any completion that referenced it. CLAUDE.md non-negotiable #2 says completions are append-only. Fix with soft-delete on assignments or snapshot lesson state into the completion row." }
       ],
       "shipped": [
+        {
+          "date": "2026-05-01",
+          "what": "Customizable spaceship profiles — SVG ship renderer (3 hulls × 8 colors × 3 engines × 6 decals), full-screen customizer page with live preview, profile picker shows the saved ship as the avatar, galaxy ship sprite renders from config.",
+          "tags": ["ux", "ship", "architecture"],
+          "learned": "Building each picker tile as a mini-Spaceship with that variant applied (rest of config held) gives a 'see-it-on-your-ship' preview without separate part icons."
+        },
+        {
+          "date": "2026-04-30",
+          "what": "Galaxy navigation as alt learner view — planets per lesson sized by quiz presence, dimmed when complete, warp animation on tap, ship sprite flies before warp, Command Center modal holds done list + settings.",
+          "tags": ["ux", "animation", "ship", "mobile"],
+          "learned": "Putting the ship sprite outside .galaxy-stage keeps it from being scaled by the warp transform — ship arrives at planet, then camera zooms past it."
+        },
+        {
+          "date": "2026-04-30",
+          "what": "Completed lessons sink to a dimmed 'Done this week' section in the learner view; prep view always shows the profile selector and a 'X of Y done' summary in the header.",
+          "tags": ["ux"],
+          "learned": "Email-inbox metaphor (completed work moves out of the way) reads naturally even to a 7-year-old — without it the kid sees a wall of finished tiles instead of what's left."
+        },
         {
           "date": "2026-04-24",
           "what": "Fixed Supabase Storage resources bucket — was set private (public=false), causing all file URLs to return 404.",
