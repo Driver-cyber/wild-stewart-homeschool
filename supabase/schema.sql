@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS profiles (
   created_at    timestamptz NOT NULL DEFAULT now()
 );
 
+-- Migration: customizable spaceship per learner profile (Feature 3)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS spaceship_config jsonb;
+
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 DO $$ BEGIN
