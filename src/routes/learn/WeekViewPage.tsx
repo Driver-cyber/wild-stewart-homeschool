@@ -98,6 +98,7 @@ export default function WeekViewPage() {
         onTapAssignment={id => navigate(`/learn/${profileId}/${id}`)}
         onBack={() => navigate('/learn')}
         onSwitchToList={() => setView('list')}
+        onCustomize={() => navigate(`/learn/${profileId}/customize`)}
       />
     )
   }

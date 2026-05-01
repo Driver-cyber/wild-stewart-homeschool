@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { Profile, Lesson } from '../../lib/types'
 import { SUBJECTS } from '../../lib/types'
+import Spaceship from '../../components/Spaceship'
 import './galaxy.css'
 
 interface AssignmentRow {
@@ -17,6 +18,7 @@ interface Props {
   onTapAssignment: (assignmentId: string) => void
   onBack: () => void
   onSwitchToList: () => void
+  onCustomize: () => void
 }
 
 const SUBJECT_PALETTE: Record<string, { core: string; glow: string }> = {
@@ -63,6 +65,7 @@ export default function GalaxyView({
   onTapAssignment,
   onBack,
   onSwitchToList,
+  onCustomize,
 }: Props) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ w: 800, h: 540 })
@@ -165,7 +168,7 @@ export default function GalaxyView({
         aria-label={shipPos ? undefined : 'Open command center'}
         onClick={shipPos ? undefined : () => setCommandOpen(true)}
       >
-        🚀
+        <Spaceship config={profile.spaceship_config} size={44} />
       </div>
 
       <div
@@ -324,9 +327,15 @@ export default function GalaxyView({
                 <span>← Back to profiles</span>
                 <span className="arrow"></span>
               </button>
-              <button className="cc-action" disabled>
+              <button
+                className="cc-action"
+                onClick={() => {
+                  setCommandOpen(false)
+                  onCustomize()
+                }}
+              >
                 <span>Customize spaceship</span>
-                <span className="badge">Soon</span>
+                <span className="arrow">→</span>
               </button>
             </div>
           </div>
