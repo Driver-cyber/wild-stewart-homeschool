@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import type { Lesson, Profile } from '../../lib/types'
 import { SUBJECTS, subjectColor } from '../../lib/types'
 import { toDateStr, getWeekMonday, addDays } from '../../lib/dates'
+import GalaxyView from './GalaxyView'
 
 interface AssignmentRow {
   id: string
@@ -20,6 +21,16 @@ export default function WeekViewPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [assignments, setAssignments] = useState<AssignmentRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [view, setView] = useState<'list' | 'galaxy'>(() => {
+    if (!profileId) return 'list'
+    return localStorage.getItem(`learner_view_${profileId}`) === 'galaxy'
+      ? 'galaxy'
+      : 'list'
+  })
+
+  useEffect(() => {
+    if (profileId) localStorage.setItem(`learner_view_${profileId}`, view)
+  }, [view, profileId])
 
   const weekStart = getWeekMonday(new Date())
   const weekDates = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i))
@@ -66,15 +77,29 @@ export default function WeekViewPage() {
   }, [profileId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const forDay = (dateStr: string) =>
-    assignments.filter(a => a.scheduled_date === dateStr)
+    assignments.filter(a => a.scheduled_date === dateStr && !a.completed)
 
-  const totalDone = assignments.filter(a => a.completed).length
+  const completedAssignments = assignments.filter(a => a.completed)
+  const totalDone = completedAssignments.length
 
   if (loading) {
     return (
       <div className="min-h-screen bg-learner-bg flex items-center justify-center font-rounded">
         <div className="text-learner-muted text-xl">Loading…</div>
       </div>
+    )
+  }
+
+  if (view === 'galaxy' && profile) {
+    return (
+      <GalaxyView
+        profile={profile}
+        assignments={assignments}
+        onTapAssignment={id => navigate(`/learn/${profileId}/${id}`)}
+        onBack={() => navigate('/learn')}
+        onSwitchToList={() => setView('list')}
+        onCustomize={() => navigate(`/learn/${profileId}/customize`)}
+      />
     )
   }
 
@@ -94,7 +119,7 @@ export default function WeekViewPage() {
         >
           {profile?.avatar_emoji}
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="font-display text-2xl font-black text-learner-ink leading-tight">
             {profile?.name}'s Week
           </h1>
@@ -104,6 +129,13 @@ export default function WeekViewPage() {
             </p>
           )}
         </div>
+        <button
+          onClick={() => setView('galaxy')}
+          aria-label="Switch to galaxy view"
+          className="w-11 h-11 rounded-full flex items-center justify-center text-2xl shadow-sm flex-shrink-0 bg-gradient-to-br from-indigo-900 to-slate-900 hover:scale-105 active:scale-95 transition-transform"
+        >
+          🌌
+        </button>
       </div>
 
       {/* Day sections */}
@@ -138,15 +170,10 @@ export default function WeekViewPage() {
                       className="relative rounded-3xl p-5 text-left shadow-sm active:scale-95 transition-transform min-h-[100px] flex flex-col justify-between"
                       style={{ backgroundColor: subjectColor(a.lesson.subject) }}
                     >
-                      {a.completed && (
-                        <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/30 flex items-center justify-center text-white text-lg font-bold">
-                          ✓
-                        </div>
-                      )}
                       <div className="text-white/70 text-xs font-bold uppercase tracking-wider mb-2">
                         {subj?.label}
                       </div>
-                      <div className="text-white font-bold text-base leading-snug pr-8">
+                      <div className="text-white font-bold text-base leading-snug">
                         {a.lesson.title}
                       </div>
                     </button>
@@ -156,6 +183,46 @@ export default function WeekViewPage() {
             </div>
           )
         })}
+
+        {completedAssignments.length > 0 && (
+          <div className="pt-6 border-t border-black/10">
+            <div className="flex items-baseline gap-2 mb-3 px-1">
+              <h2 className="text-base font-bold text-learner-muted">
+                Done this week
+              </h2>
+              <span className="text-learner-muted text-sm font-medium">
+                {completedAssignments.length}{' '}
+                {completedAssignments.length === 1 ? 'lesson' : 'lessons'} ✓
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {completedAssignments.map(a => {
+                const subj = SUBJECTS.find(s => s.value === a.lesson.subject)
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => navigate(`/learn/${profileId}/${a.id}`)}
+                    className="relative rounded-2xl p-3 text-left shadow-sm active:scale-95 transition-transform min-h-[68px] flex flex-col justify-between"
+                    style={{
+                      backgroundColor: subjectColor(a.lesson.subject),
+                      opacity: 0.55,
+                    }}
+                  >
+                    <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/40 flex items-center justify-center text-white text-sm font-bold">
+                      ✓
+                    </div>
+                    <div className="text-white/80 text-[10px] font-bold uppercase tracking-wider">
+                      {subj?.label}
+                    </div>
+                    <div className="text-white font-semibold text-sm leading-snug pr-7">
+                      {a.lesson.title}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {assignments.length === 0 && (
           <div className="text-center py-24">
