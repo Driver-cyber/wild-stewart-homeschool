@@ -125,6 +125,23 @@ ALTER TABLE completions
 ALTER TABLE completions
   ADD COLUMN IF NOT EXISTS lesson_snapshot jsonb;
 
+-- Lesson reference on the completion event, so curriculum-inbox can read
+-- per-(lesson, profile) state without JOINing through assignments. Enables
+-- "catalog state" updates that don't have a scheduled assignment yet
+-- (e.g. Joelle marks W3 Reading 'mastered' from the curriculum view).
+ALTER TABLE completions
+  ADD COLUMN IF NOT EXISTS lesson_id uuid REFERENCES lessons(id) ON DELETE SET NULL;
+
+-- Backfill from existing rows.
+UPDATE completions c
+   SET lesson_id = a.lesson_id
+  FROM assignments a
+ WHERE c.assignment_id = a.id
+   AND c.lesson_id IS NULL;
+
+CREATE INDEX IF NOT EXISTS completions_profile_lesson_idx
+  ON completions (profile_id, lesson_id, completed_at DESC);
+
 -- Don't lose completion history when an assignment is unassigned
 -- (resolves drift named in the 2026-04-23 demo-week DECISIONS entry).
 ALTER TABLE completions
