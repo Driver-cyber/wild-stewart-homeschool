@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Lesson, LessonState, Profile } from '../../lib/types'
+import type { Lesson, LessonState, Profile, SightWordStateRow } from '../../lib/types'
 import { LESSON_STATE_LABELS, LESSON_STATE_COLORS, latestStateByKey } from '../../lib/types'
 import { useAuth } from '../../contexts/AuthContext'
 import { CURRICULUM } from '../../data/curriculum'
-import type { CurriculumWeek, CurriculumKind } from '../../data/curriculum-types'
+import type { CurriculumWeek, CurriculumKind, CurriculumReading, CurriculumSpelling } from '../../data/curriculum-types'
 import { curriculumLessonRow } from '../../lib/curriculum-mapping'
 import { lessonSnapshot } from '../../lib/snapshot'
+import { personalizeEntry, type PersonalizableLesson } from '../../lib/personalize'
 import StatusCircle from '../../components/StatusCircle'
 
 // Joelle's prototype reconciliation: per-track subject colors.
@@ -28,6 +29,7 @@ export default function CurriculumPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [stateByLessonId, setStateByLessonId] = useState<Map<string, LessonState>>(new Map())
+  const [masteredSet, setMasteredSet] = useState<Set<string>>(new Set())
   const [seeding, setSeeding] = useState(false)
   const [loading, setLoading] = useState(true)
   const [openCell, setOpenCell] = useState<{ week: number; kind: CurriculumKind } | null>(null)
@@ -47,11 +49,13 @@ export default function CurriculumPage() {
   }
 
   useEffect(() => {
-    if (!profile || lessons.length === 0) { setStateByLessonId(new Map()); return }
+    if (!profile) { setStateByLessonId(new Map()); setMasteredSet(new Set()); return }
     void loadStates(profile.id)
+    void loadMastered(profile.id)
   }, [profile, lessons])
 
   async function loadStates(profileId: string) {
+    if (lessons.length === 0) { setStateByLessonId(new Map()); return }
     const ids = lessons.map(l => l.id)
     const { data } = await supabase
       .from('completions')
@@ -63,6 +67,20 @@ export default function CurriculumPage() {
     const out = new Map<string, LessonState>()
     for (const [k, v] of latest) out.set(k, v.state)
     setStateByLessonId(out)
+  }
+
+  async function loadMastered(profileId: string) {
+    const { data } = await supabase
+      .from('sight_word_states')
+      .select('id, user_id, profile_id, word, state, created_at')
+      .eq('profile_id', profileId)
+    const events = (data ?? []) as SightWordStateRow[]
+    const latest = latestStateByKey(events, e => e.word.toLowerCase())
+    const set = new Set<string>()
+    for (const [, v] of latest) {
+      if (v.state === 'mastered') set.add(v.word.toLowerCase())
+    }
+    setMasteredSet(set)
   }
 
   // Index lessons by (track, week_number) for cell lookup.
@@ -92,14 +110,25 @@ export default function CurriculumPage() {
     setSeeding(false)
   }
 
-  async function setLessonState(lesson: Lesson, next: LessonState) {
+  async function setLessonState(
+    lesson: Lesson,
+    next: LessonState,
+    adapted?: PersonalizableLesson<CurriculumReading> | PersonalizableLesson<CurriculumSpelling>,
+  ) {
     if (!user || !profile) return
     setStateByLessonId(prev => {
       const m = new Map(prev)
       m.set(lesson.id, next)
       return m
     })
-    const snapshot = next === 'mastered' ? lessonSnapshot(lesson) : null
+    // Snapshot the adapted content if available so the completion record
+    // reflects what was actually shown when the state was set.
+    const adaptedContent = adapted && lesson.content ? {
+      ...lesson.content,
+      sightWords: adapted.sightWords,
+      sentence: adapted.sentence,
+    } : null
+    const snapshot = next === 'mastered' ? lessonSnapshot(lesson, adaptedContent) : null
     const { error } = await supabase.from('completions').insert({
       user_id: user.id,
       profile_id: profile.id,
@@ -117,16 +146,27 @@ export default function CurriculumPage() {
     return { lesson, state: stateByLessonId.get(lesson.id) ?? 'todo' }
   }
 
+  // Adapt every week against the learner's mastered sight words.
+  // Pure transform; no Supabase access here.
+  const personalized = useMemo(
+    () => CURRICULUM.map(w => personalizeEntry(w, masteredSet)),
+    [masteredSet],
+  )
+
+  const adaptedCount = personalized.reduce((n, w) =>
+    n + (w.reading._personalized ? 1 : 0) + (w.spelling._personalized ? 1 : 0)
+  , 0)
+
   // Group weeks by unit so we can render unit dividers.
   const unitGroups = useMemo(() => {
-    const groups: { unit: string; weeks: CurriculumWeek[] }[] = []
-    for (const w of CURRICULUM) {
+    const groups: { unit: string; weeks: typeof personalized }[] = []
+    for (const w of personalized) {
       const last = groups[groups.length - 1]
       if (last && last.unit === w.unit) last.weeks.push(w)
       else groups.push({ unit: w.unit, weeks: [w] })
     }
     return groups
-  }, [])
+  }, [personalized])
 
   if (loading) return <p className="text-adult-muted">Loading curriculum…</p>
 
@@ -173,6 +213,18 @@ export default function CurriculumPage() {
           </p>
         </div>
       ) : (
+        <>
+        {adaptedCount > 0 && profile && (
+          <div className="mb-4 rounded-xl px-4 py-3 flex items-center gap-3" style={{ backgroundColor: '#DAEAD9', color: '#3B6849' }}>
+            <span className="text-lg">✦</span>
+            <div className="text-sm">
+              <span className="font-semibold">Curriculum adapted for {profile.name}.</span>{' '}
+              <span className="opacity-80">
+                {masteredSet.size} sight word{masteredSet.size === 1 ? '' : 's'} marked mastered — {adaptedCount} lesson{adaptedCount === 1 ? '' : 's'} have fresh sight words and updated practice sentences.
+              </span>
+            </div>
+          </div>
+        )}
         <div className="bg-white border border-adult-border rounded-2xl overflow-hidden">
           {/* Track header */}
           <div className="grid grid-cols-[80px_1fr_1fr] border-b border-adult-border bg-adult-bg/40 sticky top-[60px] z-[1]">
@@ -215,7 +267,7 @@ export default function CurriculumPage() {
                           accentSoft={TRACK_ACCENT.reading.soft}
                           weekData={weekData}
                           kind="reading"
-                          onCycle={next => setLessonState(reading.lesson, next)}
+                          onCycle={next => setLessonState(reading.lesson, next, weekData.reading)}
                           onToggle={() => setOpenCell(openReading ? null : { week: weekData.week, kind: 'reading' })}
                           isOpen={openReading}
                         />
@@ -228,7 +280,7 @@ export default function CurriculumPage() {
                           accentSoft={TRACK_ACCENT.spelling.soft}
                           weekData={weekData}
                           kind="spelling"
-                          onCycle={next => setLessonState(spelling.lesson, next)}
+                          onCycle={next => setLessonState(spelling.lesson, next, weekData.spelling)}
                           onToggle={() => setOpenCell(openSpelling ? null : { week: weekData.week, kind: 'spelling' })}
                           isOpen={openSpelling}
                         />
@@ -242,7 +294,7 @@ export default function CurriculumPage() {
                             state={reading.state}
                             kind="reading"
                             weekData={weekData}
-                            onSetState={next => setLessonState(reading.lesson, next)}
+                            onSetState={next => setLessonState(reading.lesson, next, weekData.reading)}
                           />
                         )}
                         {openSpelling && spelling && (
@@ -251,7 +303,7 @@ export default function CurriculumPage() {
                             state={spelling.state}
                             kind="spelling"
                             weekData={weekData}
-                            onSetState={next => setLessonState(spelling.lesson, next)}
+                            onSetState={next => setLessonState(spelling.lesson, next, weekData.spelling)}
                           />
                         )}
                       </div>
@@ -262,27 +314,32 @@ export default function CurriculumPage() {
             </div>
           ))}
         </div>
+        </>
       )}
     </div>
   )
 }
 
+type PersonalizedWeek = ReturnType<typeof personalizeEntry>
+
 function CellButton({
-  lesson, state, accent, accentSoft, weekData, kind, onCycle, onToggle, isOpen,
+  state, accent, accentSoft, weekData, kind, onCycle, onToggle, isOpen,
 }: {
   lesson: Lesson
   state: LessonState
   accent: string
   accentSoft: string
-  weekData: CurriculumWeek
+  weekData: PersonalizedWeek
   kind: CurriculumKind
   onCycle: (next: LessonState) => void
   onToggle: () => void
   isOpen: boolean
 }) {
-  const data = kind === 'reading' ? weekData.reading : weekData.spelling
-  const sightWords = kind === 'reading' ? weekData.reading.sightWords : weekData.spelling.sightWords
+  const data: PersonalizableLesson<CurriculumReading> | PersonalizableLesson<CurriculumSpelling> =
+    kind === 'reading' ? weekData.reading : weekData.spelling
+  const sightWords = data.sightWords
   const exampleWords = data.words.slice(0, 4)
+  const adapted = !!data._personalized
   return (
     <button
       type="button"
@@ -298,15 +355,22 @@ function CellButton({
         />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: accent }}>
-          {data.focus}
+        <div className="flex items-center gap-2 mb-0.5">
+          <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: accent }}>
+            {data.focus}
+          </div>
+          {adapted && (
+            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ backgroundColor: '#DAEAD9', color: '#3B6849' }}>
+              ✦ Adapted
+            </span>
+          )}
         </div>
         <div className="font-display text-lg font-bold text-adult-ink leading-snug">
-          {kind === 'reading' ? weekData.reading.title : weekData.spelling.focus}
+          {kind === 'reading' ? (data as CurriculumReading).title : (data as CurriculumSpelling).focus}
         </div>
-        {kind === 'reading' && weekData.reading.summary && (
+        {kind === 'reading' && (data as CurriculumReading).summary && (
           <div className="text-xs text-adult-muted mt-0.5 italic line-clamp-1">
-            {weekData.reading.summary}
+            {(data as CurriculumReading).summary}
           </div>
         )}
         {kind === 'spelling' && sightWords && sightWords.length > 0 && (
@@ -332,17 +396,19 @@ function CellButton({
 }
 
 function DetailPanel({
-  lesson, state, kind, weekData, onSetState,
+  state, kind, weekData, onSetState,
 }: {
   lesson: Lesson
   state: LessonState
   kind: CurriculumKind
-  weekData: CurriculumWeek
+  weekData: PersonalizedWeek
   onSetState: (s: LessonState) => void
 }) {
   const accent = kind === 'reading' ? TRACK_ACCENT.reading.fg : TRACK_ACCENT.spelling.fg
-  const data = kind === 'reading' ? weekData.reading : weekData.spelling
+  const data: PersonalizableLesson<CurriculumReading> | PersonalizableLesson<CurriculumSpelling> =
+    kind === 'reading' ? weekData.reading : weekData.spelling
   const isReading = kind === 'reading'
+  const personalization = data._personalized
 
   return (
     <div className="grid md:grid-cols-[2fr_1fr] gap-6">
@@ -379,13 +445,20 @@ function DetailPanel({
           </div>
         </div>
 
-        {(isReading ? weekData.reading.sightWords : weekData.spelling.sightWords)?.length ? (
+        {data.sightWords && data.sightWords.length > 0 ? (
           <div className="mb-4">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-adult-muted mb-2">
-              Sight words this week
+            <div className="flex items-center gap-2 mb-2">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-adult-muted">
+                Sight words this week
+              </div>
+              {personalization && (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ backgroundColor: '#DAEAD9', color: '#3B6849' }}>
+                  ✦ Adapted
+                </span>
+              )}
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {(isReading ? weekData.reading.sightWords! : weekData.spelling.sightWords).map((w, i) => (
+              {data.sightWords.map((w, i) => (
                 <span
                   key={i}
                   className="text-sm px-2.5 py-1 rounded-full font-semibold"
@@ -393,6 +466,19 @@ function DetailPanel({
                 >{w}</span>
               ))}
             </div>
+            {personalization && Object.keys(personalization.swaps).length > 0 && (
+              <div className="mt-2 text-xs text-adult-muted">
+                Swapped:{' '}
+                {Object.entries(personalization.swaps).map(([from, to], i, arr) => (
+                  <span key={from}>
+                    <span className="line-through">{from}</span>
+                    {' → '}
+                    <strong className="text-adult-ink">{to}</strong>
+                    {i < arr.length - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         ) : null}
 
@@ -403,6 +489,12 @@ function DetailPanel({
           <p className="font-display italic text-2xl text-adult-ink leading-snug">
             {data.sentence}
           </p>
+          {personalization && personalization.original.sentence !== data.sentence && (
+            <p className="font-display italic text-sm text-adult-muted mt-2">
+              <span className="text-[10px] not-italic uppercase tracking-widest font-bold mr-1.5">Original:</span>
+              {personalization.original.sentence}
+            </p>
+          )}
         </div>
 
         <div className="bg-white border border-adult-border rounded-xl p-4 mb-4">
