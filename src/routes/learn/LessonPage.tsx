@@ -166,6 +166,7 @@ export default function LessonPage() {
     const { error } = await supabase.from('completions').insert({
       user_id: user.id,
       assignment_id: assignment.id,
+      lesson_id: assignment.lesson.id,
       profile_id: assignment.profile_id,
       state: 'mastered',
       lesson_snapshot: lessonSnapshot(assignment.lesson),
