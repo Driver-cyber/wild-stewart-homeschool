@@ -37,6 +37,128 @@ Module 10 (Real-World Shakedown) in CLAUDE.md.
 
 ## 📝 Decision Log
 
+### 2026-05-06 — Joelle's curriculum-inbox handoff and the three-ring expansion
+
+After Joelle ran her own session in Claude and produced a high-fidelity prototype
+of teacher-side curriculum tooling (the `reference/curriculum-inbox/` bundle),
+Chad and Claude reviewed the handoff and reshaped the v1.x roadmap. This entry
+captures the strategic conversation and the resulting weekend build plan.
+
+**Joelle's curriculum-inbox is a *pattern*, not a single feature.** The two-track
+week-row planner she designed for Reading & Spelling generalizes: each subject
+deserves its own deep prep workshop tuned to how that subject is actually taught.
+Reading & Spelling first (because she built them); math, science, social studies,
+writing follow as v1.x modules using the same shell with subject-appropriate
+content shapes. This recognizes that prep is craft, and the tool's job is to
+respect Joelle's pedagogy rather than flatten it.
+
+**Three-ring architecture.** Adopted as the mental model for everything ahead:
+
+- *Ring 1 — Per-subject curriculum modules.* Joelle's deep prep workshops. Same
+  week-row spine, subject-specific organs (digraphs/sight-words for reading;
+  number-sense/strategies for math; concepts/observations for science).
+- *Ring 2 — Prep dashboard (cockpit).* Cross-subject overview. The calendar lives
+  here. Pulls completion + benchmark data from every subject module.
+- *Ring 3 — Learner view (tiles).* Unchanged in feel. Receives assignments;
+  writes completions back. Kid-facing simplicity is load-bearing — Rings 1 and 2
+  do not bleed into Ring 3.
+
+**Benchmarks as connective tissue.** New `benchmarks` table:
+`(profile_id, subject, skill, score, max, taken_at)`. Append-only. Read by both
+the per-subject curriculum modules ("fractions: 3/5 — focus area") and the prep
+dashboard. Quiz results, diagnostic results, and Joelle's manual skill marks all
+funnel into the same shape. This is what lets a 60% on fractions inform next
+week's curriculum customization.
+
+**Personalization engine boundary, confirmed.** `personalizeEntry(entry,
+masteredSet)` is a pure function. Supabase access lives in the caller, never the
+function. Deterministic by `(week, kind)` so words don't shuffle on revisit.
+Tier-aware substitution preferring the original lesson's median tier. Phonics
+target words (the lesson's `words` array) are **never** substituted. Sentence
+rewriting only touches tokens that match a known sight word. Adapted content
+snapshots into the completion row when Lyle finishes — resolving constitution
+non-negotiable #3 cleanly. Append-only sight-word state per non-negotiable #2.
+
+**Offline / external lesson type added to scope.** Real-world activities — library
+books, piano practice, field trips, "watch this together" — need a way to be in
+the day plan and check off when done. Implementation: small extension to
+`general` (no in-app interactive content required; "Instructions for Lyle" + a
+"✓ Done" button is sufficient), plus an optional `is_offline` flag for filter /
+display purposes. This generalizes the app from "lesson player" to **comprehensive
+homeschool day planner**. It is the smallest change that makes the command
+center actually comprehensive.
+
+**Status taxonomy upgrade: done/not-done → todo / progress / review / mastered.**
+Joelle's prototype proved the four-state vocabulary. Replaces the binary today.
+Append-only — flipping `mastered` back to `progress` writes a new event, never
+mutates history. Same vocabulary on both sides of the prep/learn split (Joelle's
+status circles + Lyle's tile state).
+
+**PWA stays. No move to iOS native.** Install-to-home-screen on iPad gives Lyle
+a full-screen launch icon. The case for native (gestures, lock-screen presence,
+true offline) doesn't justify doubling the codebase for a family-scale tool. To
+keep the option open at zero cost: avoid browser-specific APIs that Capacitor /
+Tauri can't wrap. Revisit only if a specific platform need surfaces.
+
+**Architecture growth.** Frontend keeps talking directly to Supabase for
+everything non-AI. The Cloudflare Workers escape hatch named in CLAUDE.md
+becomes real once AI features land — quiz generator, worksheet OCR, scheduled
+"week-ahead" emails. Server-side is also where Claude API keys live; never
+exposed in the browser bundle. Supabase Edge Functions are an alternative worth
+evaluating when the time comes.
+
+**Constitutional creak, named.** The "no Product 2 is planned" line in CLAUDE.md
+still holds — this is a tool Joelle uses, not a SaaS we're selling. But the
+expanded vision quietly architects for portability at low cost: RLS already
+scopes by household, subject taxonomy and curriculum content live in seed-data
+tables (not hardcoded), `profile_id` is on every row. Cost: ~5%. Benefit: if
+Joelle ever wants to share what she built with another family, the path is open.
+We are *not* designing multi-tenant flows, billing, or marketing. Decision is to
+preserve optionality, not to chase it.
+
+**Module reshuffle (this entry supersedes the original CLAUDE.md numbering for
+status; CLAUDE.md's module legend is now a historical reference).**
+
+| # | Module | Status | Notes |
+|---|---|---|---|
+| 1 | Skeleton (Vite/TS/Tailwind/Supabase/routing) | ✅ Shipped | 2026-04-23 |
+| 2 | Auth + learner profiles | ✅ Shipped | 2026-04-23 |
+| 3 | Data model (lessons / assignments / completions / resources) + RLS | ✅ Shipped | 2026-04-23 |
+| 4 | `general` lesson type end-to-end (the v1 loop) | ✅ Shipped | 2026-04-23 |
+| 5 | Library MVP (PDF / image / docx upload, YouTube embed, links) | ✅ Shipped | 2026-04-23/24 |
+| 6 | Quiz builder + galaxy view + spaceship customizer + responsive pass | ✅ Shipped | 2026-04-24 / 2026-05-01 |
+| 7 | Status taxonomy expansion (4-state) | 🏗 Weekend | Schema enum + UI. Append-only events. |
+| 8 | Offline / external lesson support | 🏗 Weekend | Generalizes day plan to library books & IRL activities. |
+| 9 | Curriculum-inbox shell — Reading & Spelling track | 🏗 Weekend | Two-track week-row planner. Joelle's prep surface. |
+| 10 | Sight Words inventory + Personalization engine | 🏗 Weekend | Pure function, `profile_id`-scoped read, append-only. |
+| 11 | Bulk schedule (Mon→Reading, Wed→Spelling, run length) | 🏗 Weekend | Calendar UX upgrade from Joelle's prototype. |
+| 12 | Append-only completion fix (snapshot lesson into completion row) | 🏗 Weekend | Resolves known drift from non-negotiables #2 and #3. |
+| 13 | Per-subject curriculum modules (math first, then science / social / writing) | 🔜 v1.x | Same shell, subject-specific content shapes. Math uses `general` until then. |
+| 14 | Benchmarks table + Diagnostics view (six unit assessments) | 🔜 v1.x | Score-to-status auto-recommendation. |
+| 15 | Prep dashboard (cross-subject cockpit) | 🔜 v1.x | Pulls from every subject module + benchmarks. |
+| 16 | Quiz generator (Cloudflare Workers + Claude API) | 🔜 v1.x | First server-side AI feature. Aggressive caching. |
+| 17 | Worksheet OCR / photo-to-benchmark | 🔜 v2 | Vision API. Removes data-entry tax. |
+| 18 | Real-world shakedown | 🔜 Continuous | Joelle uses it weekly; bugs filed and fixed; v1 is "real." |
+
+**Weekend ship target — Sunday 2026-05-10.** Modules 7–12 land. Joelle uses the
+expanded prep surface to plan the week of Mon 2026-05-11 for Lyle. Modules 13–17
+are explicitly *not* this weekend — they need data to be useful, and that data
+only exists once Joelle has actually used the new modules.
+
+**Subject color reconciliation — open question for Joelle.** Curriculum-inbox
+accent options: (a) Reading red on reading rows, Writing teal on spelling rows
+(per-track split, more visual structure); (b) single accent — pick Reading red
+or Writing teal across the module (cleaner, less chatter). Default to (a) unless
+Joelle prefers otherwise.
+
+**Personalization on/off question for Joelle.** Should adaptation happen
+automatically when a sight word is marked mastered, or as an explicit "Refresh
+curriculum for Lyle" action she triggers? Default to automatic with the
+"✦ Adapted" badge + swap summary visible — the prototype's transparency pattern
+was designed to make trust earnable. Revisit if it feels noisy in practice.
+
+---
+
 ### 2026-05-01 — Galaxy navigation and customizable spaceships
 
 Three feature requests from Joelle's Apr 30 session notes were implemented and
