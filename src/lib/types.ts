@@ -41,6 +41,25 @@ export interface QuizQuestion {
   sentence?: string
 }
 
+export type LessonState = 'todo' | 'progress' | 'review' | 'mastered'
+
+export type CurriculumTrack = 'reading' | 'spelling' | 'phonics' | null
+
+export interface CurriculumContent {
+  focus?: string
+  skill?: string
+  summary?: string
+  spellingRule?: string
+  exampleWords?: string[]
+  sightWords?: string[]
+  sentence?: string
+  activity?: { title: string; body: string }
+  song?: { title: string; body: string }
+  prerequisites?: string[]
+  commonMistakes?: string[]
+  quickCheck?: string
+}
+
 export interface Lesson {
   id: string
   user_id: string
@@ -53,6 +72,10 @@ export interface Lesson {
   content_image_path: string | null
   quiz_questions: QuizQuestion[] | null
   lesson_type: 'general'
+  is_offline: boolean
+  week_number: number | null
+  track: CurriculumTrack
+  content: CurriculumContent | null
   created_at: string
 }
 
@@ -68,9 +91,57 @@ export interface Assignment {
 export interface Completion {
   id: string
   user_id: string
-  assignment_id: string
+  assignment_id: string | null
   profile_id: string
+  state: LessonState
+  lesson_snapshot: CurriculumContent | null
   completed_at: string
+}
+
+export interface SightWord {
+  id: string
+  user_id: string
+  word: string
+  tier: 'pre_primer' | 'primer' | 'kindergarten' | 'high_frequency'
+  created_at: string
+}
+
+export interface SightWordStateRow {
+  id: string
+  user_id: string
+  profile_id: string
+  word: string
+  state: LessonState
+  created_at: string
+}
+
+export const LESSON_STATE_LABELS: Record<LessonState, string> = {
+  todo: 'To do',
+  progress: 'In progress',
+  review: 'Needs review',
+  mastered: 'Mastered',
+}
+
+export const LESSON_STATE_COLORS: Record<LessonState, { fill: string; ring: string; ink: string }> = {
+  todo:     { fill: 'transparent', ring: '#A8A095', ink: '#5C5448' },
+  progress: { fill: '#F2E3C2',     ring: '#C29347', ink: '#8B6A2A' },
+  review:   { fill: 'transparent', ring: '#C56A4E', ink: '#C56A4E' },
+  mastered: { fill: '#5A8C6B',     ring: '#5A8C6B', ink: '#FFFFFF' },
+}
+
+// Reduce an event log of state rows into the latest state per key.
+// Pure helper used by both the assignment-state and sight-word-state queries.
+export function latestStateByKey<T extends { created_at: string; state: LessonState }>(
+  rows: T[],
+  keyOf: (row: T) => string,
+): Map<string, T> {
+  const sorted = [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at))
+  const out = new Map<string, T>()
+  for (const r of sorted) {
+    const k = keyOf(r)
+    if (!out.has(k)) out.set(k, r)
+  }
+  return out
 }
 
 export type Subject = 'reading' | 'writing' | 'math' | 'science' | 'social_studies'

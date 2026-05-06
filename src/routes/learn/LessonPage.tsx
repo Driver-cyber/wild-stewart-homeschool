@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { supabase } from '../../lib/supabase'
-import type { Lesson, Profile, QuizQuestion } from '../../lib/types'
-import { SUBJECTS, subjectColor } from '../../lib/types'
+import type { Lesson, Profile, QuizQuestion, LessonState } from '../../lib/types'
+import { SUBJECTS, subjectColor, latestStateByKey } from '../../lib/types'
 import { getYouTubeId } from '../../lib/youtube'
+import { lessonSnapshot } from '../../lib/snapshot'
 import { useAuth } from '../../contexts/AuthContext'
 
 function getStorageUrl(path: string): string {
@@ -143,11 +144,12 @@ export default function LessonPage() {
         setAssignment(data as unknown as AssignmentFull)
         const { data: comp } = await supabase
           .from('completions')
-          .select('id')
+          .select('state, created_at:completed_at')
           .eq('assignment_id', assignmentId!)
           .eq('profile_id', profileId!)
-          .maybeSingle()
-        setCompleted(!!comp)
+        const events = (comp ?? []) as { state: LessonState; created_at: string }[]
+        const latest = latestStateByKey(events, () => 'a').get('a')
+        setCompleted(latest?.state === 'mastered')
       }
       setLoading(false)
     }
@@ -165,6 +167,8 @@ export default function LessonPage() {
       user_id: user.id,
       assignment_id: assignment.id,
       profile_id: assignment.profile_id,
+      state: 'mastered',
+      lesson_snapshot: lessonSnapshot(assignment.lesson),
     })
     if (!error) {
       setCompleted(true)

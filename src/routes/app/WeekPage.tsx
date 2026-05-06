@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Lesson, Profile } from '../../lib/types'
-import { SUBJECTS, subjectColor } from '../../lib/types'
+import type { Lesson, Profile, LessonState } from '../../lib/types'
+import { SUBJECTS, subjectColor, latestStateByKey } from '../../lib/types'
 import { useAuth } from '../../contexts/AuthContext'
 import { toDateStr, getWeekMonday, addDays, formatShort } from '../../lib/dates'
+import { lessonSnapshot } from '../../lib/snapshot'
+import StatusCircle from '../../components/StatusCircle'
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
@@ -12,7 +14,7 @@ interface AssignmentRow {
   lesson_id: string
   scheduled_date: string
   lesson: Lesson
-  completed: boolean
+  state: LessonState
 }
 
 export default function WeekPage() {
@@ -61,10 +63,11 @@ export default function WeekPage() {
     const ids = aData.map((a: { id: string }) => a.id)
     const { data: cData } = await supabase
       .from('completions')
-      .select('assignment_id')
+      .select('assignment_id, state, created_at:completed_at')
       .in('assignment_id', ids)
 
-    const doneSet = new Set((cData ?? []).map((c: { assignment_id: string }) => c.assignment_id))
+    const events = (cData ?? []) as { assignment_id: string; state: LessonState; created_at: string }[]
+    const latest = latestStateByKey(events, e => e.assignment_id)
 
     setAssignments(
       aData.map((a: { id: string; lesson_id: string; scheduled_date: string; lesson: Lesson }) => ({
@@ -72,12 +75,26 @@ export default function WeekPage() {
         lesson_id: a.lesson_id,
         scheduled_date: a.scheduled_date,
         lesson: a.lesson,
-        completed: doneSet.has(a.id),
+        state: latest.get(a.id)?.state ?? 'todo',
       }))
     )
   }, [selectedProfile, weekStart]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { loadAssignments() }, [loadAssignments])
+
+  async function cycleState(a: AssignmentRow, next: LessonState) {
+    if (!user || !selectedProfile) return
+    const snapshot = next === 'mastered' ? lessonSnapshot(a.lesson) : null
+    setAssignments(prev => prev.map(x => x.id === a.id ? { ...x, state: next } : x))
+    const { error } = await supabase.from('completions').insert({
+      user_id: user.id,
+      assignment_id: a.id,
+      profile_id: selectedProfile.id,
+      state: next,
+      lesson_snapshot: snapshot,
+    })
+    if (error) loadAssignments() // revert via refetch on failure
+  }
 
   async function assign(lessonId: string, date: string) {
     if (!user || !selectedProfile) return
@@ -100,7 +117,7 @@ export default function WeekPage() {
 
   const today = toDateStr(new Date())
   const weekLabel = `${formatShort(weekStart)} – ${formatShort(weekEnd)}, ${weekStart.getFullYear()}`
-  const totalDone = assignments.filter(a => a.completed).length
+  const totalDone = assignments.filter(a => a.state === 'mastered').length
 
   if (profilesLoading) return <p className="text-adult-muted">Loading…</p>
 
@@ -180,15 +197,25 @@ export default function WeekPage() {
                 {dayRows.map(a => (
                   <div
                     key={a.id}
-                    className="rounded-lg px-3 py-2 text-white text-sm relative group"
-                    style={{ backgroundColor: subjectColor(a.lesson.subject) }}
+                    className="rounded-lg pl-2 pr-3 py-2 text-white text-sm relative group flex items-start gap-2"
+                    style={{
+                      backgroundColor: subjectColor(a.lesson.subject),
+                      opacity: a.state === 'mastered' ? 0.65 : 1,
+                    }}
                   >
-                    <div className="font-semibold leading-tight pr-4 line-clamp-2">
-                      {a.lesson.title}
+                    <div className="pt-0.5">
+                      <StatusCircle
+                        state={a.state}
+                        size={20}
+                        onChange={next => cycleState(a, next)}
+                      />
                     </div>
-                    {a.completed && (
-                      <div className="text-xs opacity-80 mt-0.5">✓ Done</div>
-                    )}
+                    <div className="flex-1 font-semibold leading-tight pr-4 line-clamp-2">
+                      {a.lesson.title}
+                      {a.lesson.is_offline && (
+                        <span className="ml-1 inline-block text-[10px] uppercase tracking-wider bg-white/25 rounded px-1 py-0.5 align-middle">offline</span>
+                      )}
+                    </div>
                     <button
                       onClick={() => unassign(a.id)}
                       className="absolute top-1.5 right-2 opacity-0 group-hover:opacity-100 text-white/60 hover:text-white transition-opacity text-xs"
