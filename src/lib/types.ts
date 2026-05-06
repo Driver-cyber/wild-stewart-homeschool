@@ -43,7 +43,7 @@ export interface QuizQuestion {
 
 export type LessonState = 'todo' | 'progress' | 'review' | 'mastered'
 
-export type CurriculumTrack = 'reading' | 'spelling' | 'phonics' | null
+export type CurriculumTrack = 'reading' | 'spelling' | 'phonics' | 'math:concept' | 'math:practice' | null
 
 export interface CurriculumContent {
   focus?: string

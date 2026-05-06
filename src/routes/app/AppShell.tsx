@@ -4,6 +4,7 @@ import LibraryPage from './LibraryPage'
 import WeekPage from './WeekPage'
 import ProfilesPage from './ProfilesPage'
 import CurriculumPage from './CurriculumPage'
+import MathCurriculumPage from './MathCurriculumPage'
 import SightWordsPage from './SightWordsPage'
 
 export default function AppShell() {
@@ -17,12 +18,12 @@ export default function AppShell() {
         </h1>
         <div className="flex items-center gap-3 sm:gap-6 overflow-x-auto flex-1 min-w-0">
           {[
-            { to: '/app/week',         label: 'This Week'   },
-            { to: '/app/curriculum',   label: 'Curriculum'  },
-            { to: '/app/sight-words',  label: 'Sight Words' },
-            { to: '/app/library',      label: 'Library'     },
-            { to: '/app/profiles',     label: 'Profiles'    },
-            { to: '/welcome',          label: 'Guide'       },
+            { to: '/app/week',                        label: 'This Week'   },
+            { to: '/app/curriculum/reading-spelling', label: 'Curriculum'  },
+            { to: '/app/sight-words',                 label: 'Sight Words' },
+            { to: '/app/library',                     label: 'Library'     },
+            { to: '/app/profiles',                    label: 'Profiles'    },
+            { to: '/welcome',                         label: 'Guide'       },
           ].map(({ to, label }) => (
             <NavLink
               key={to}
@@ -48,11 +49,13 @@ export default function AppShell() {
       <main className="max-w-6xl mx-auto px-6 py-8">
         <Routes>
           <Route index element={<Navigate to="week" replace />} />
-          <Route path="week"         element={<WeekPage />}         />
-          <Route path="curriculum"   element={<CurriculumPage />}   />
-          <Route path="sight-words"  element={<SightWordsPage />}   />
-          <Route path="library"      element={<LibraryPage />}      />
-          <Route path="profiles"     element={<ProfilesPage />}     />
+          <Route path="week"                            element={<WeekPage />}            />
+          <Route path="curriculum"                      element={<Navigate to="reading-spelling" replace />} />
+          <Route path="curriculum/reading-spelling"     element={<CurriculumPage />}      />
+          <Route path="curriculum/math"                 element={<MathCurriculumPage />}  />
+          <Route path="sight-words"                     element={<SightWordsPage />}      />
+          <Route path="library"                         element={<LibraryPage />}         />
+          <Route path="profiles"                        element={<ProfilesPage />}        />
         </Routes>
       </main>
     </div>

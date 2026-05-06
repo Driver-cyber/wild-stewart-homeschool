@@ -9,6 +9,7 @@ import { curriculumLessonRow } from '../../lib/curriculum-mapping'
 import { lessonSnapshot } from '../../lib/snapshot'
 import { personalizeEntry, type PersonalizableLesson } from '../../lib/personalize'
 import StatusCircle from '../../components/StatusCircle'
+import CurriculumNav from '../../components/CurriculumNav'
 
 // Joelle's prototype reconciliation: per-track subject colors.
 const TRACK_ACCENT: Record<CurriculumKind, { fg: string; soft: string; label: string }> = {
@@ -172,6 +173,7 @@ export default function CurriculumPage() {
 
   return (
     <div>
+      <CurriculumNav />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
         <div>

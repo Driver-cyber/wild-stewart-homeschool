@@ -133,7 +133,7 @@ status; CLAUDE.md's module legend is now a historical reference).**
 | 10 | Sight Words inventory + Personalization engine | ✅ Shipped 2026-05-06 | Pure function, `profile_id`-scoped read, append-only. |
 | 11 | Bulk schedule (Mon→Reading, Wed→Spelling, run length) | ✅ Shipped 2026-05-06 | Calendar UX upgrade from Joelle's prototype. |
 | 12 | Append-only completion fix (snapshot lesson into completion row) | ✅ Shipped 2026-05-06 | Resolves known drift from non-negotiables #2 and #3. |
-| 13 | Per-subject curriculum modules (math first, then science / social / writing) | 🔜 v1.x | Same shell, subject-specific content shapes. Math uses `general` until then. |
+| 13 | Math curriculum module (Concept + Practice tracks, 32 weeks) | ✅ Shipped 2026-05-06 (first draft) | Same shell as Reading/Spelling, math-shaped content. Concept/Practice split is a hypothesis pending Joelle's reshape. Science / Social / Writing follow the same pattern. |
 | 14 | Benchmarks table + Diagnostics view (six unit assessments) | 🔜 v1.x | Score-to-status auto-recommendation. |
 | 15 | Prep dashboard (cross-subject cockpit) | 🔜 v1.x | Pulls from every subject module + benchmarks. |
 | 16 | Quiz generator (Cloudflare Workers + Claude API) | 🔜 v1.x | First server-side AI feature. Aggressive caching. |
