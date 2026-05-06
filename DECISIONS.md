@@ -127,12 +127,12 @@ status; CLAUDE.md's module legend is now a historical reference).**
 | 4 | `general` lesson type end-to-end (the v1 loop) | ✅ Shipped | 2026-04-23 |
 | 5 | Library MVP (PDF / image / docx upload, YouTube embed, links) | ✅ Shipped | 2026-04-23/24 |
 | 6 | Quiz builder + galaxy view + spaceship customizer + responsive pass | ✅ Shipped | 2026-04-24 / 2026-05-01 |
-| 7 | Status taxonomy expansion (4-state) | 🏗 Weekend | Schema enum + UI. Append-only events. |
-| 8 | Offline / external lesson support | 🏗 Weekend | Generalizes day plan to library books & IRL activities. |
-| 9 | Curriculum-inbox shell — Reading & Spelling track | 🏗 Weekend | Two-track week-row planner. Joelle's prep surface. |
-| 10 | Sight Words inventory + Personalization engine | 🏗 Weekend | Pure function, `profile_id`-scoped read, append-only. |
-| 11 | Bulk schedule (Mon→Reading, Wed→Spelling, run length) | 🏗 Weekend | Calendar UX upgrade from Joelle's prototype. |
-| 12 | Append-only completion fix (snapshot lesson into completion row) | 🏗 Weekend | Resolves known drift from non-negotiables #2 and #3. |
+| 7 | Status taxonomy expansion (4-state) | ✅ Shipped 2026-05-06 | Schema enum + UI. Append-only events. |
+| 8 | Offline / external lesson support | ✅ Shipped 2026-05-06 | Generalizes day plan to library books & IRL activities. |
+| 9 | Curriculum-inbox shell — Reading & Spelling track | ✅ Shipped 2026-05-06 | Two-track week-row planner. Joelle's prep surface. |
+| 10 | Sight Words inventory + Personalization engine | ✅ Shipped 2026-05-06 | Pure function, `profile_id`-scoped read, append-only. |
+| 11 | Bulk schedule (Mon→Reading, Wed→Spelling, run length) | ✅ Shipped 2026-05-06 | Calendar UX upgrade from Joelle's prototype. |
+| 12 | Append-only completion fix (snapshot lesson into completion row) | ✅ Shipped 2026-05-06 | Resolves known drift from non-negotiables #2 and #3. |
 | 13 | Per-subject curriculum modules (math first, then science / social / writing) | 🔜 v1.x | Same shell, subject-specific content shapes. Math uses `general` until then. |
 | 14 | Benchmarks table + Diagnostics view (six unit assessments) | 🔜 v1.x | Score-to-status auto-recommendation. |
 | 15 | Prep dashboard (cross-subject cockpit) | 🔜 v1.x | Pulls from every subject module + benchmarks. |
