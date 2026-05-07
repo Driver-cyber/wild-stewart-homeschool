@@ -58,6 +58,7 @@ export default function WeekViewPage() {
         const { data: cData } = await supabase
           .from('completions')
           .select('assignment_id, state, created_at:completed_at')
+          .eq('profile_id', profileId!)
           .in('assignment_id', ids)
         const events = (cData ?? []) as { assignment_id: string; state: LessonState; created_at: string }[]
         const latest = latestStateByKey(events, e => e.assignment_id)

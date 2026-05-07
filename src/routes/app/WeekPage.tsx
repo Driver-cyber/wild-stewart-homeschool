@@ -65,6 +65,7 @@ export default function WeekPage() {
     const { data: cData } = await supabase
       .from('completions')
       .select('assignment_id, state, created_at:completed_at')
+      .eq('profile_id', selectedProfile.id)
       .in('assignment_id', ids)
 
     const events = (cData ?? []) as { assignment_id: string; state: LessonState; created_at: string }[]

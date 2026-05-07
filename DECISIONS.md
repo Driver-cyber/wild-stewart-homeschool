@@ -157,6 +157,14 @@ curriculum for Lyle" action she triggers? Default to automatic with the
 "✦ Adapted" badge + swap summary visible — the prototype's transparency pattern
 was designed to make trust earnable. Revisit if it feels noisy in practice.
 
+**`completions.lesson_id` FK semantics.** Both `assignment_id` and `lesson_id`
+on completions use `ON DELETE SET NULL`. If Joelle deletes a lesson from the
+library, catalog-level completion events (`assignment_id=null, lesson_id=X`)
+become orphans with both FKs null. This is acceptable: `lesson_snapshot` is
+the historical content of record, so the completion remains a valid "this
+happened" fact even with no live lesson reference. Orphans are noise, not
+data loss. Revisit only if the noise becomes a UX problem.
+
 ---
 
 ### 2026-05-01 — Galaxy navigation and customizable spaceships
