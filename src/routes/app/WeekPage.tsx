@@ -64,11 +64,11 @@ export default function WeekPage() {
     const ids = aData.map((a: { id: string }) => a.id)
     const { data: cData } = await supabase
       .from('completions')
-      .select('assignment_id, state, created_at:completed_at')
+      .select('id, assignment_id, state, created_at:completed_at')
       .eq('profile_id', selectedProfile.id)
       .in('assignment_id', ids)
 
-    const events = (cData ?? []) as { assignment_id: string; state: LessonState; created_at: string }[]
+    const events = (cData ?? []) as { id: string; assignment_id: string; state: LessonState; created_at: string }[]
     const latest = latestStateByKey(events, e => e.assignment_id)
 
     setAssignments(
@@ -275,9 +275,7 @@ export default function WeekPage() {
                   {SUBJECTS.map(subject => {
                     const alreadyAssigned = new Set(pickDay ? forDay(pickDay).map(a => a.lesson_id) : [])
                     const group = lessons.filter(l =>
-                      l.subject === subject.value
-                      && !alreadyAssigned.has(l.id)
-                      && !l.track // curriculum lessons go through bulk schedule
+                      l.subject === subject.value && !alreadyAssigned.has(l.id)
                     )
                     if (group.length === 0) return null
                     return (

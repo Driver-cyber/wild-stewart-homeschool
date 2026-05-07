@@ -204,3 +204,54 @@ DO $$ BEGIN
       FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
   END IF;
 END $$;
+
+-- ─── Append-only enforcement (2026-05-06 review #3) ──────────────────────────────
+-- The `FOR ALL` policies above let owners UPDATE and DELETE state rows. The append-only
+-- invariant is currently enforced only by convention in the React code. Drop the FOR ALL
+-- policies and replace with explicit FOR SELECT + FOR INSERT so the database enforces
+-- the rule at its strongest layer. RLS is still scoped to the household (user_id).
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'completions' AND policyname = 'completions: owner full access') THEN
+    DROP POLICY "completions: owner full access" ON completions;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'completions' AND policyname = 'completions: owner read') THEN
+    CREATE POLICY "completions: owner read" ON completions
+      FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'completions' AND policyname = 'completions: owner insert') THEN
+    CREATE POLICY "completions: owner insert" ON completions
+      FOR INSERT WITH CHECK (auth.uid() = user_id);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'sight_word_states' AND policyname = 'sight_word_states: owner full access') THEN
+    DROP POLICY "sight_word_states: owner full access" ON sight_word_states;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'sight_word_states' AND policyname = 'sight_word_states: owner read') THEN
+    CREATE POLICY "sight_word_states: owner read" ON sight_word_states
+      FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'sight_word_states' AND policyname = 'sight_word_states: owner insert') THEN
+    CREATE POLICY "sight_word_states: owner insert" ON sight_word_states
+      FOR INSERT WITH CHECK (auth.uid() = user_id);
+  END IF;
+END $$;
+
+-- ─── Curriculum lesson uniqueness (2026-05-06 review #4) ─────────────────────────
+-- Make the seed step idempotent by giving the (user_id, track, week_number) tuple a
+-- unique constraint. Repeat clicks of "Seed curriculum" will no-op via upsert
+-- ON CONFLICT instead of inserting duplicates.
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'lessons_curriculum_unique'
+  ) THEN
+    -- Partial unique index — only curriculum lessons (those with both track AND
+    -- week_number set) need uniqueness; ad-hoc library lessons stay free.
+    CREATE UNIQUE INDEX lessons_curriculum_unique
+      ON lessons (user_id, track, week_number)
+      WHERE track IS NOT NULL AND week_number IS NOT NULL;
+  END IF;
+END $$;

@@ -60,7 +60,9 @@ export default function SightWordsPage() {
       word: w.word,
       tier: w.tier,
     }))
-    const { error } = await supabase.from('sight_words').insert(rows)
+    const { error } = await supabase
+      .from('sight_words')
+      .upsert(rows, { onConflict: 'user_id,word', ignoreDuplicates: true })
     if (error) {
       alert(`Seed failed: ${error.message}`)
     } else {

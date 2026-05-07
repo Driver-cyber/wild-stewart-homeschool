@@ -164,5 +164,14 @@ export function personalizeEntry(entry: CurriculumWeek, mastered: Set<string>): 
 } {
   const reading = personalizeLesson(entry.reading, mastered, entry.week, 'reading')
   const spelling = personalizeLesson(entry.spelling, mastered, entry.week, 'spelling')
+  // Reference-equality short-circuit: if neither track was adapted, return the
+  // entry unchanged so downstream memoization can dedupe by reference. Matches
+  // the JS original's behavior.
+  if (reading === entry.reading && spelling === entry.spelling) {
+    return entry as CurriculumWeek & {
+      reading: PersonalizableLesson<CurriculumReading>
+      spelling: PersonalizableLesson<CurriculumSpelling>
+    }
+  }
   return { ...entry, reading, spelling }
 }

@@ -167,6 +167,81 @@ data loss. Revisit only if the noise becomes a UX problem.
 
 ---
 
+### 2026-05-06 (continued) — Multi-agent code review + pre-merge fixes
+
+After the weekend build was pushed, four parallel review agents combed the
+diff: (1) security & data-access, (2) personalization correctness, (3)
+append-only state model, (4) architecture & first-draft cleanup. Findings
+triaged into "must fix before merge" / "strongly recommend" / "backlog."
+
+**Shipped pre-merge (PR #8):**
+
+- **Math is now schedulable.** Day-picker filter `!l.track` was hiding all
+  curriculum lessons from manual scheduling. Removed the filter so any lesson
+  can be added per-day. Bulk schedule still hardcodes Reading→Mon /
+  Spelling→Wed only — math gets manual scheduling for now. (`WeekPage.tsx`)
+- **Profile-id scoping on completion reads.** Two reads were filtering by
+  `assignment_id` only, which RLS-scopes to household but leaves the
+  within-household cross-profile gap open (irrelevant today, real once Lyle
+  has a sibling profile). Added `.eq('profile_id', …)`. (`WeekPage.tsx`,
+  `WeekViewPage.tsx`)
+- **Append-only enforced at the database.** RLS policies on `completions` and
+  `sight_word_states` switched from `FOR ALL` → separate `FOR SELECT` +
+  `FOR INSERT`. No update/delete policy means owners can't mutate state
+  history even via the Supabase Studio. Convention is now backed by force.
+- **Seed idempotence.** Curriculum, math curriculum, and sight-word seed
+  paths use `.upsert(..., { ignoreDuplicates: true })` against new unique
+  indexes (`lessons_curriculum_unique` partial index on
+  `(user_id, track, week_number)` for curriculum lessons; existing
+  `(user_id, word)` for sight words). Re-running a seed is now a no-op.
+- **Snapshot completeness.** `lessonSnapshot` now captures `quiz_questions`,
+  `resource_url`, `resource_url_2`, `pdf_path`, `content_image_path`, and
+  `is_offline` in addition to the original text fields. Joelle editing a
+  lesson's PDF after Lyle finishes it no longer breaks his historical record.
+- **LessonPage snapshots adapted content.** When Lyle finishes a Reading or
+  Spelling curriculum lesson, the snapshot now includes the personalized
+  sight words and sentence — so the completion record reflects what was
+  configured for him at that moment, not the catalog.
+- **`personalizeEntry` reference-equality short-circuit.** Restored from the
+  JS original — un-adapted weeks return the same entry reference so
+  `useMemo` can dedupe by reference downstream.
+- **`latestStateByKey` deterministic tie-breaker.** Identical `created_at`
+  values now break ties by `id` DESC, eliminating non-deterministic ordering
+  on rapid back-to-back state events. Read sites updated to include `id` in
+  the select.
+
+**Backlog — fix tomorrow (or during the next focused session):**
+
+| Item | Source review | Notes |
+|---|---|---|
+| Discriminated `LessonContent` union to replace all-optional `CurriculumContent` | #4 | Math-mapping currently stuffs manipulatives into `sightWords`. Cleaner type once subjects diverge. Pair with the next item. |
+| Extract `<TwoTrackCurriculumView>` shared component | #4 | `CurriculumPage` ↔ `MathCurriculumPage` are ~80% structural duplicates. Estimated savings: ~350 lines. Do this *before* subject #3 (science). |
+| Toast helper for write failures | #4 | Right now write errors silently refetch. Kid-side "I'm done!" silent failure is bad UX. |
+| Kid-side LessonPage cross-profile URL paste test | #1 | Manual or automated check that visiting `/learn/:profileA/:assignmentBelongingToProfileB` renders "Lesson not found." |
+| Drop `'mastered'` default on `completions.state` | #3 | After all backfill verified. Makes future omissions error loudly instead of silently mis-recording. |
+| Add `(profile_id, assignment_id, completed_at DESC)` index | #3 | Match the existing `(profile_id, lesson_id, …)` index. Prevents scan growth as event volume increases. |
+| `// APPEND-ONLY` doc comment on `Completion`/`SightWordStateRow` types | #3 | So a future dev reading just `types.ts` sees the rule. |
+| `BulkScheduleModal` duplicate detection | #4 | Detect existing assignments before re-running so re-scheduling doesn't create duplicate rows. |
+| Remove unused `'phonics'` from `CurriculumTrack` | #4 | Dead enum value. |
+| Drop unused `lesson` prop from `CurriculumPage`'s `DetailPanel` | #4 | Cosmetic. |
+| Curly apostrophe handling in `personalize.ts` regex | #2 | Edge case for paste-from-Word content. |
+| Tier-as-group-index implicit dependency | #2 | Future reorder of `SIGHT_WORDS` array would silently reshuffle every learner's deterministic substitutions. Derive numeric tier from string label. |
+| `personalizeLesson` `as` cast soundness | #2 | Type-level shape drift risk when fields are added. Add a unit test or refactor return type. |
+| `LessonPage` `data as unknown as AssignmentFull` double-cast | #4 | Replace with a properly-typed Supabase join shape. |
+| `markDone()` can't un-master after refresh | #3 | Once completed=true, no re-mastering until reload. v1-acceptable; flag for shakedown. |
+| `WeekViewPage` / `GalaxyView` `completed` flag stale across tabs | #3 | No realtime subscription. v1-acceptable. |
+| `BulkScheduleModal` track-aware bulk scheduling for math | #4 | Bulk modal currently Reading→Mon / Spelling→Wed only. Adding math (Concept→Tue, Practice→Thu?) needs Joelle's input on her math cadence. |
+| Adapted badge with empty swaps | #2 | Cosmetic — gate the ✦ Adapted badge on `Object.keys(swaps).length > 0`. |
+| Code-split curriculum routes | #4 | 647KB main bundle. Lazy-load `/app/curriculum/*` routes when there's a real performance signal. |
+
+**Schema migration to apply when convenient:** the same `supabase/schema.sql`
+file holds the new policies and unique index. It's idempotent — paste-and-run
+in the SQL editor is safe. The new constraints will retroactively enforce
+append-only on production (currently FOR ALL allows updates that we trust
+the React code not to make).
+
+---
+
 ### 2026-05-01 — Galaxy navigation and customizable spaceships
 
 Three feature requests from Joelle's Apr 30 session notes were implemented and

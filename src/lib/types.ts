@@ -131,11 +131,20 @@ export const LESSON_STATE_COLORS: Record<LessonState, { fill: string; ring: stri
 
 // Reduce an event log of state rows into the latest state per key.
 // Pure helper used by both the assignment-state and sight-word-state queries.
-export function latestStateByKey<T extends { created_at: string; state: LessonState }>(
+//
+// Sort key: created_at DESC, then id DESC as a deterministic tie-breaker so two
+// events with the same microsecond timestamp don't depend on input order.
+// (uuid id is monotonic enough for a tie-break since they're created with
+// independent random sources; lexicographic compare is fine.)
+export function latestStateByKey<T extends { created_at: string; state: LessonState; id?: string }>(
   rows: T[],
   keyOf: (row: T) => string,
 ): Map<string, T> {
-  const sorted = [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at))
+  const sorted = [...rows].sort((a, b) => {
+    const t = b.created_at.localeCompare(a.created_at)
+    if (t !== 0) return t
+    return (b.id ?? '').localeCompare(a.id ?? '')
+  })
   const out = new Map<string, T>()
   for (const r of sorted) {
     const k = keyOf(r)

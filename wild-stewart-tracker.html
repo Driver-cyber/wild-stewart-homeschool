@@ -237,6 +237,12 @@
       "shipped": [
         {
           "date": "2026-05-06",
+          "what": "Multi-agent code review pass + pre-merge fixes. Four parallel review agents (security, personalization correctness, append-only audit, architecture) produced a triaged punch list. Shipped: math now schedulable (day-picker filter dropped), profile_id scoping on completion reads, append-only enforced at DB layer (FOR ALL → FOR SELECT + FOR INSERT), seed idempotence via upsert + unique indexes, snapshot completeness (resources, quizzes, file paths), kid-side LessonPage now snapshots adapted content for reading/spelling, personalizeEntry reference-equality restored, latestStateByKey tie-breaker added.",
+          "tags": ["defensive-coding", "architecture", "review"],
+          "learned": "Parallel review agents covered different angles cleanly — security/correctness/state-model/architecture as separate prompts produced findings the single-eye review would have missed. Worth running before any meaningful merge."
+        },
+        {
+          "date": "2026-05-06",
           "what": "Math curriculum module (first draft) — 32 weeks of kindergarten math content split into Concept (introduce idea) + Practice (drill it) tracks. Same two-track week-row shell as Reading & Spelling, math-shaped content (manipulatives, examples, big idea, drill type, problem set). Sub-nav at top of curriculum pages switches between Reading & Spelling and Math.",
           "tags": ["ux", "architecture", "docs"],
           "learned": "The two-track shell generalizes cleanly when you find the right pedagogical split per subject. Concept + Practice for math is a first-draft hypothesis — Joelle may reshape after a real week."

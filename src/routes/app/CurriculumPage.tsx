@@ -60,10 +60,10 @@ export default function CurriculumPage() {
     const ids = lessons.map(l => l.id)
     const { data } = await supabase
       .from('completions')
-      .select('lesson_id, state, created_at:completed_at')
+      .select('id, lesson_id, state, created_at:completed_at')
       .eq('profile_id', profileId)
       .in('lesson_id', ids)
-    const events = (data ?? []) as { lesson_id: string; state: LessonState; created_at: string }[]
+    const events = (data ?? []) as { id: string; lesson_id: string; state: LessonState; created_at: string }[]
     const latest = latestStateByKey(events, e => e.lesson_id)
     const out = new Map<string, LessonState>()
     for (const [k, v] of latest) out.set(k, v.state)
@@ -102,7 +102,9 @@ export default function CurriculumPage() {
       curriculumLessonRow(week, 'reading', user.id),
       curriculumLessonRow(week, 'spelling', user.id),
     ])
-    const { error } = await supabase.from('lessons').insert(rows)
+    const { error } = await supabase
+      .from('lessons')
+      .upsert(rows, { onConflict: 'user_id,track,week_number', ignoreDuplicates: true })
     if (error) {
       alert(`Seed failed: ${error.message}`)
     } else {
