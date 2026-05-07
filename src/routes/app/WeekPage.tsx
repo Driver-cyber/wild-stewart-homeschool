@@ -333,8 +333,23 @@ export default function WeekPage() {
 }
 
 // ─── Bulk schedule modal ─────────────────────────────────────────────────────
-// Writes Reading→Mon and Spelling→Wed for N weeks at a time, starting from the
-// given Monday and curriculum week. Per Joelle's prototype cadence.
+// Writes the 4 curriculum tracks (Reading, Spelling, Math Concept, Math Practice)
+// in lockstep by week number, with a configurable day-of-week per subject.
+
+const TRACKS = [
+  { key: 'reading',        label: 'Reading',       defaultDay: 0 },
+  { key: 'math:concept',   label: 'Math Concept',  defaultDay: 1 },
+  { key: 'spelling',       label: 'Spelling',      defaultDay: 2 },
+  { key: 'math:practice',  label: 'Math Practice', defaultDay: 3 },
+] as const
+
+const WEEKDAYS = [
+  { value: 0, label: 'Mon' },
+  { value: 1, label: 'Tue' },
+  { value: 2, label: 'Wed' },
+  { value: 3, label: 'Thu' },
+  { value: 4, label: 'Fri' },
+]
 
 function BulkScheduleModal({
   userId, profile, defaultMonday, existingAssignments, onClose, onScheduled,
@@ -360,6 +375,12 @@ function BulkScheduleModal({
   const [startWeek, setStartWeek] = useState(defaultStartWeek)
   const [runLength, setRunLength] = useState(4)
   const [curriculumLessons, setCurriculumLessons] = useState<Lesson[]>([])
+  const [trackDays, setTrackDays] = useState<Record<string, number>>(
+    () => Object.fromEntries(TRACKS.map(t => [t.key, t.defaultDay])),
+  )
+  const [trackEnabled, setTrackEnabled] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(TRACKS.map(t => [t.key, true])),
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -368,7 +389,7 @@ function BulkScheduleModal({
       const { data } = await supabase
         .from('lessons')
         .select('*')
-        .in('track', ['reading', 'spelling'])
+        .in('track', TRACKS.map(t => t.key))
         .order('week_number')
       setCurriculumLessons((data ?? []) as Lesson[])
     }
@@ -377,8 +398,20 @@ function BulkScheduleModal({
 
   const endWeek = Math.min(startWeek + runLength - 1, 32)
   const planned = endWeek - startWeek + 1
-  const readingCount = curriculumLessons.filter(l => l.track === 'reading' && l.week_number != null && l.week_number >= startWeek && l.week_number <= endWeek).length
-  const spellingCount = curriculumLessons.filter(l => l.track === 'spelling' && l.week_number != null && l.week_number >= startWeek && l.week_number <= endWeek).length
+  const trackCounts = Object.fromEntries(
+    TRACKS.map(t => [
+      t.key,
+      trackEnabled[t.key]
+        ? curriculumLessons.filter(l =>
+            l.track === t.key &&
+            l.week_number != null &&
+            l.week_number >= startWeek &&
+            l.week_number <= endWeek,
+          ).length
+        : 0,
+    ]),
+  )
+  const totalCount = Object.values(trackCounts).reduce((a, b) => a + b, 0)
 
   async function submit() {
     if (saving) return
@@ -388,22 +421,18 @@ function BulkScheduleModal({
     const rows: { user_id: string; profile_id: string; lesson_id: string; scheduled_date: string }[] = []
     for (let i = 0; i < planned; i++) {
       const weekN = startWeek + i
-      const reading = curriculumLessons.find(l => l.track === 'reading' && l.week_number === weekN)
-      const spelling = curriculumLessons.find(l => l.track === 'spelling' && l.week_number === weekN)
       const mondayN = addDays(monday, i * 7)
-      const wednesdayN = addDays(mondayN, 2)
-      if (reading) rows.push({
-        user_id: userId,
-        profile_id: profile.id,
-        lesson_id: reading.id,
-        scheduled_date: toDateStr(mondayN),
-      })
-      if (spelling) rows.push({
-        user_id: userId,
-        profile_id: profile.id,
-        lesson_id: spelling.id,
-        scheduled_date: toDateStr(wednesdayN),
-      })
+      for (const t of TRACKS) {
+        if (!trackEnabled[t.key]) continue
+        const lesson = curriculumLessons.find(l => l.track === t.key && l.week_number === weekN)
+        if (!lesson) continue
+        rows.push({
+          user_id: userId,
+          profile_id: profile.id,
+          lesson_id: lesson.id,
+          scheduled_date: toDateStr(addDays(mondayN, trackDays[t.key])),
+        })
+      }
     }
     if (rows.length === 0) {
       setError('Nothing to schedule. Have you seeded the curriculum?')
@@ -441,7 +470,7 @@ function BulkScheduleModal({
               onChange={e => setStartMonday(e.target.value)}
               className="w-full px-4 py-2.5 rounded-lg border border-adult-border bg-adult-bg text-adult-ink focus:outline-none focus:ring-2 focus:ring-adult-accent"
             />
-            <p className="text-xs text-adult-muted mt-1">Reading lands on this date; Spelling lands two days later.</p>
+            <p className="text-xs text-adult-muted mt-1">All days below are offsets from this Monday.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -470,13 +499,39 @@ function BulkScheduleModal({
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-semibold text-adult-ink mb-1.5">Days</label>
+            <div className="space-y-2">
+              {TRACKS.map(t => (
+                <div key={t.key} className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 flex-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={trackEnabled[t.key]}
+                      onChange={e => setTrackEnabled(s => ({ ...s, [t.key]: e.target.checked }))}
+                      className="w-4 h-4 accent-adult-accent"
+                    />
+                    <span className="text-sm text-adult-ink">{t.label}</span>
+                  </label>
+                  <select
+                    value={trackDays[t.key]}
+                    onChange={e => setTrackDays(s => ({ ...s, [t.key]: parseInt(e.target.value, 10) }))}
+                    disabled={!trackEnabled[t.key]}
+                    className="px-3 py-1.5 rounded-lg border border-adult-border bg-adult-bg text-adult-ink text-sm focus:outline-none focus:ring-2 focus:ring-adult-accent disabled:opacity-50"
+                  >
+                    {WEEKDAYS.map(d => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-adult-bg/60 border border-adult-border rounded-xl p-3">
             <p className="text-sm text-adult-ink">
-              This will schedule{' '}
-              <strong>{readingCount} Reading</strong> {readingCount === 1 ? 'lesson on the Monday' : 'lessons on Mondays'}
-              {' '}and{' '}
-              <strong>{spellingCount} Spelling</strong> {spellingCount === 1 ? 'lesson on the Wednesday' : 'lessons on Wednesdays'}
-              {' '}covering curriculum weeks <strong>{startWeek}–{endWeek}</strong>.
+              This will schedule <strong>{totalCount}</strong> {totalCount === 1 ? 'lesson' : 'lessons'} covering
+              curriculum weeks <strong>{startWeek}–{endWeek}</strong>.
             </p>
           </div>
 
@@ -497,10 +552,10 @@ function BulkScheduleModal({
           <button
             type="button"
             onClick={submit}
-            disabled={saving || readingCount + spellingCount === 0}
+            disabled={saving || totalCount === 0}
             className="bg-adult-accent text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
           >
-            {saving ? 'Scheduling…' : `Schedule ${readingCount + spellingCount} lessons`}
+            {saving ? 'Scheduling…' : `Schedule ${totalCount} lessons`}
           </button>
         </div>
       </div>
