@@ -159,7 +159,7 @@
   <header class="header">
     <h1>Wild Stewart Homeschool</h1>
     <div class="description">The Stewart family homeschool operating system — planning, library, and learner experience in one.</div>
-    <div class="meta">Updated 2026-05-01 · Galaxy nav + customizable ships live · v1+ surface area</div>
+    <div class="meta">Updated 2026-05-06 · Curriculum-inbox + sight-word personalization + bulk schedule live · weekend ship</div>
   </header>
 
   <div class="column">
@@ -224,17 +224,68 @@
 {
   "project": "Wild Stewart Homeschool",
   "description": "The Stewart family homeschool operating system — planning, library, and learner experience in one.",
-  "updated": "2026-05-01",
+  "updated": "2026-05-06",
   "columns": [
     {
       "name": "Up Next — Polish & Backlog",
-      "sub": "v1 loop + galaxy + ships shipped · real-world week running",
+      "sub": "Curriculum-inbox shipped · Joelle plans next-week's school live this weekend",
       "priorities": [
-        { "title": "Real-world shakedown (Module 10)", "note": "Joelle planned Apr 28–May 2; week is in flight. Watching the seams as Lyle uses galaxy view + ships in actual sessions. Bugs and rough edges get filed as they appear." },
-        { "title": "`reading` lesson type (Module 5)", "note": "Digraph → words → sentences flow as an interactive lesson type. Proves the data model handles structured content, not just free-form lessons pointing to PDFs." },
-        { "title": "Fix the completions-cascade drift", "note": "Unassigning a lesson today wipes any completion that referenced it. CLAUDE.md non-negotiable #2 says completions are append-only. Fix with soft-delete on assignments or snapshot lesson state into the completion row." }
+        { "title": "Sunday shakedown — Joelle plans the week of May 11", "note": "Goal: end-to-end Sunday-night planning session through the new curriculum-inbox + bulk schedule + sight-words personalization. Watch the seams as Lyle uses what was scheduled. File bugs as they appear." },
+        { "title": "Math curriculum module (Module 13)", "note": "Same shell as Reading & Spelling, but with math content shapes (number sense, fact families, strategies). First v1.x feature — proves the per-subject pattern generalizes." },
+        { "title": "Benchmarks + diagnostics (Module 14)", "note": "Six unit assessments with auto-recommendation; benchmarks table fed by quiz scores and manual marks. Drives 'where to focus next' in the curriculum modules." }
       ],
       "shipped": [
+        {
+          "date": "2026-05-06",
+          "what": "Multi-agent code review pass + pre-merge fixes. Four parallel review agents (security, personalization correctness, append-only audit, architecture) produced a triaged punch list. Shipped: math now schedulable (day-picker filter dropped), profile_id scoping on completion reads, append-only enforced at DB layer (FOR ALL → FOR SELECT + FOR INSERT), seed idempotence via upsert + unique indexes, snapshot completeness (resources, quizzes, file paths), kid-side LessonPage now snapshots adapted content for reading/spelling, personalizeEntry reference-equality restored, latestStateByKey tie-breaker added.",
+          "tags": ["defensive-coding", "architecture", "review"],
+          "learned": "Parallel review agents covered different angles cleanly — security/correctness/state-model/architecture as separate prompts produced findings the single-eye review would have missed. Worth running before any meaningful merge."
+        },
+        {
+          "date": "2026-05-06",
+          "what": "Math curriculum module (first draft) — 32 weeks of kindergarten math content split into Concept (introduce idea) + Practice (drill it) tracks. Same two-track week-row shell as Reading & Spelling, math-shaped content (manipulatives, examples, big idea, drill type, problem set). Sub-nav at top of curriculum pages switches between Reading & Spelling and Math.",
+          "tags": ["ux", "architecture", "docs"],
+          "learned": "The two-track shell generalizes cleanly when you find the right pedagogical split per subject. Concept + Practice for math is a first-draft hypothesis — Joelle may reshape after a real week."
+        },
+        {
+          "date": "2026-05-06",
+          "what": "Bulk schedule modal — Reading→Mon, Spelling→Wed for N curriculum weeks at a time. Defaults to next unscheduled week and run length 4. Day-picker filters out curriculum lessons so it doesn't get crowded after seeding 64 entries.",
+          "tags": ["ux", "calendar"],
+          "learned": "Joelle's prototype Mon/Wed cadence assumption holds — once curriculum lessons land in their own scheduling path (bulk), the day-picker stays clean for ad-hoc library items."
+        },
+        {
+          "date": "2026-05-06",
+          "what": "Sight Words inventory + personalization engine — TS port of personalize.js as a pure function (deterministic by week+kind, tier-aware substitution, capitalization-preserving sentence rewriting). Curriculum-inbox shows ✦ Adapted badge, swap summary, and 'Original: ...' sentence when a lesson was rewritten.",
+          "tags": ["ux", "architecture"],
+          "learned": "Keeping personalize.ts free of Supabase imports — caller resolves the masteredSet from a profile_id-scoped query — is the boundary that keeps it testable and reusable across views."
+        },
+        {
+          "date": "2026-05-06",
+          "what": "Curriculum-inbox shell at /app/curriculum — two-track week-row planner (Reading red on reading rows, Writing teal on spelling rows), unit dividers, status circles tied to per-(lesson, profile) state. Detail panel with practice sentence, example words, sight-words pills, activity card, song/chant, prerequisites, common mistakes, quick check, and a teacher-side 'How to teach' aside (heart-word framing for spelling).",
+          "tags": ["ux", "architecture"],
+          "learned": "The two-track week-row pattern generalizes — same shell will host math, science, and other subjects as v1.x curriculum modules. Subject-specific organs go in the content jsonb."
+        },
+        {
+          "date": "2026-05-06",
+          "what": "32-week Reading & Spelling curriculum content seed (64 lessons total) + Dolch sight-word catalog seed. Idempotent buttons on the Curriculum and Sight Words pages.",
+          "tags": ["architecture", "docs"]
+        },
+        {
+          "date": "2026-05-06",
+          "what": "Four-state status taxonomy: todo / progress / review / mastered. Status circle is a shared component (hollow / amber-soft with dot / terracotta with serif '!' / sage with check). Tap to cycle, or use explicit 4-button row in the detail panel. State events are append-only; latest row per (assignment_id) and (profile_id, lesson_id) wins.",
+          "tags": ["ux", "architecture"]
+        },
+        {
+          "date": "2026-05-06",
+          "what": "Offline / external lesson type — toggle on the lesson form for library books, piano practice, field trips, anything off-screen. 'Offline' badge on Library cards and on Joelle's week tiles. Lyle just checks the box when done.",
+          "tags": ["ux"],
+          "learned": "Generalizing 'lesson' from 'in-app interactive' to 'anything in the day plan' is what turns this from a lesson player into a comprehensive homeschool day planner."
+        },
+        {
+          "date": "2026-05-06",
+          "what": "Append-only completion fix — completions.assignment_id FK switched to ON DELETE SET NULL; lesson_snapshot jsonb captures lesson content at mastery time; lesson_id column added so curriculum-inbox can read state without joining. Resolves CLAUDE.md non-negotiables #2 and #3 + the cascade-delete drift named in the Apr 23 demo-week entry.",
+          "tags": ["architecture", "defensive-coding"]
+        },
         {
           "date": "2026-05-01",
           "what": "Customizable spaceship profiles — SVG ship renderer (3 hulls × 8 colors × 3 engines × 6 decals), full-screen customizer page with live preview, profile picker shows the saved ship as the avatar, galaxy ship sprite renders from config.",

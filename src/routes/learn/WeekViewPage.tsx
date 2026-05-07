@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import type { Lesson, Profile } from '../../lib/types'
-import { SUBJECTS, subjectColor } from '../../lib/types'
+import type { Lesson, Profile, LessonState } from '../../lib/types'
+import { SUBJECTS, subjectColor, latestStateByKey } from '../../lib/types'
 import { toDateStr, getWeekMonday, addDays } from '../../lib/dates'
 import GalaxyView from './GalaxyView'
 
@@ -10,6 +10,7 @@ interface AssignmentRow {
   id: string
   scheduled_date: string
   lesson: Lesson
+  state: LessonState
   completed: boolean
 }
 
@@ -56,18 +57,22 @@ export default function WeekViewPage() {
         const ids = (aData as { id: string }[]).map(a => a.id)
         const { data: cData } = await supabase
           .from('completions')
-          .select('assignment_id')
+          .select('id, assignment_id, state, created_at:completed_at')
+          .eq('profile_id', profileId!)
           .in('assignment_id', ids)
-        const done = new Set(
-          (cData ?? []).map((c: { assignment_id: string }) => c.assignment_id)
-        )
+        const events = (cData ?? []) as { id: string; assignment_id: string; state: LessonState; created_at: string }[]
+        const latest = latestStateByKey(events, e => e.assignment_id)
         setAssignments(
-          (aData as { id: string; scheduled_date: string; lesson: Lesson }[]).map(a => ({
-            id: a.id,
-            scheduled_date: a.scheduled_date,
-            lesson: a.lesson,
-            completed: done.has(a.id),
-          }))
+          (aData as { id: string; scheduled_date: string; lesson: Lesson }[]).map(a => {
+            const state = latest.get(a.id)?.state ?? 'todo'
+            return {
+              id: a.id,
+              scheduled_date: a.scheduled_date,
+              lesson: a.lesson,
+              state,
+              completed: state === 'mastered',
+            }
+          })
         )
       }
 

@@ -2,9 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { supabase } from '../../lib/supabase'
-import type { Lesson, Profile, QuizQuestion } from '../../lib/types'
-import { SUBJECTS, subjectColor } from '../../lib/types'
+import type { Lesson, Profile, QuizQuestion, LessonState, CurriculumContent, SightWordStateRow } from '../../lib/types'
+import { SUBJECTS, subjectColor, latestStateByKey } from '../../lib/types'
 import { getYouTubeId } from '../../lib/youtube'
+import { lessonSnapshot } from '../../lib/snapshot'
+import { CURRICULUM } from '../../data/curriculum'
+import { personalizeLesson } from '../../lib/personalize'
 import { useAuth } from '../../contexts/AuthContext'
 
 function getStorageUrl(path: string): string {
@@ -143,11 +146,12 @@ export default function LessonPage() {
         setAssignment(data as unknown as AssignmentFull)
         const { data: comp } = await supabase
           .from('completions')
-          .select('id')
+          .select('id, state, created_at:completed_at')
           .eq('assignment_id', assignmentId!)
           .eq('profile_id', profileId!)
-          .maybeSingle()
-        setCompleted(!!comp)
+        const events = (comp ?? []) as { id: string; state: LessonState; created_at: string }[]
+        const latest = latestStateByKey(events, () => 'a').get('a')
+        setCompleted(latest?.state === 'mastered')
       }
       setLoading(false)
     }
@@ -158,13 +162,41 @@ export default function LessonPage() {
     }
   }, [assignmentId, profileId])
 
+  // For reading/spelling curriculum lessons, snapshot the *adapted* content so the
+  // historical record reflects what was personalized for this learner at this moment,
+  // not the raw catalog. Math and ad-hoc lessons snapshot as-is.
+  async function buildAdaptedContent(lesson: Lesson, profile_id: string): Promise<CurriculumContent | null> {
+    if (!lesson.content || !lesson.week_number) return null
+    if (lesson.track !== 'reading' && lesson.track !== 'spelling') return null
+    const week = CURRICULUM.find(w => w.week === lesson.week_number)
+    if (!week) return null
+
+    const { data } = await supabase
+      .from('sight_word_states')
+      .select('id, user_id, profile_id, word, state, created_at')
+      .eq('profile_id', profile_id)
+    const events = (data ?? []) as SightWordStateRow[]
+    const latest = latestStateByKey(events, e => e.word.toLowerCase())
+    const masteredSet = new Set<string>()
+    for (const [, v] of latest) if (v.state === 'mastered') masteredSet.add(v.word.toLowerCase())
+
+    const adapted = lesson.track === 'reading'
+      ? personalizeLesson(week.reading,  masteredSet, week.week, 'reading')
+      : personalizeLesson(week.spelling, masteredSet, week.week, 'spelling')
+    return { ...lesson.content, sightWords: adapted.sightWords, sentence: adapted.sentence }
+  }
+
   async function markDone() {
     if (!user || !assignment || completed || saving) return
     setSaving(true)
+    const adapted = await buildAdaptedContent(assignment.lesson, assignment.profile_id)
     const { error } = await supabase.from('completions').insert({
       user_id: user.id,
       assignment_id: assignment.id,
+      lesson_id: assignment.lesson.id,
       profile_id: assignment.profile_id,
+      state: 'mastered',
+      lesson_snapshot: lessonSnapshot(assignment.lesson, adapted),
     })
     if (!error) {
       setCompleted(true)

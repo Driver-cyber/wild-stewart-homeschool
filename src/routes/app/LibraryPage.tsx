@@ -237,6 +237,9 @@ export default function LibraryPage() {
   const [quizEnabled, setQuizEnabled] = useState(false)
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([])
 
+  // form — offline / external lesson (library book, piano, field trip, etc.)
+  const [isOffline, setIsOffline] = useState(false)
+
   useEffect(() => { loadLessons() }, [])
 
   async function loadLessons() {
@@ -262,6 +265,7 @@ export default function LibraryPage() {
     setExistingContentImagePath(null)
     setQuizEnabled(false)
     setQuizQuestions([])
+    setIsOffline(false)
     setUploadProgress('')
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (contentImageInputRef.current) contentImageInputRef.current.value = ''
@@ -286,6 +290,7 @@ export default function LibraryPage() {
       setQuizEnabled(false)
       setQuizQuestions([])
     }
+    setIsOffline(lesson.is_offline)
     setShowForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -334,6 +339,7 @@ export default function LibraryPage() {
       pdf_path: pdfPath,
       content_image_path: contentImagePath,
       quiz_questions: quizEnabled && quizQuestions.length > 0 ? quizQuestions : null,
+      is_offline: isOffline,
     }
 
     if (editingId) {
@@ -406,6 +412,22 @@ export default function LibraryPage() {
                     <option key={s.value} value={s.value}>{s.label}</option>
                   ))}
                 </select>
+              </div>
+
+              {/* Offline / external lesson toggle */}
+              <div className="col-span-1 sm:col-span-2 -mb-1">
+                <div
+                  className="flex items-center gap-3 cursor-pointer p-3 rounded-xl bg-adult-bg/60 border border-adult-border"
+                  onClick={() => setIsOffline(v => !v)}
+                >
+                  <div className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${isOffline ? 'bg-adult-accent' : 'bg-gray-300'}`}>
+                    <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${isOffline ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-adult-ink">Offline lesson</span>
+                    <span className="text-sm text-adult-muted ml-2">A library book, piano practice, field trip — anything that happens away from the screen. Lyle just checks it off when done.</span>
+                  </div>
+                </div>
               </div>
 
               {/* Link 1 */}
@@ -547,12 +569,19 @@ export default function LibraryPage() {
                   style={{ backgroundColor: subjectColor(lesson.subject) }}
                 />
                 <div className="flex-1 min-w-0">
-                  <span
-                    className="text-xs font-bold uppercase tracking-wider"
-                    style={{ color: subjectColor(lesson.subject) }}
-                  >
-                    {subjectLabel(lesson.subject)}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-xs font-bold uppercase tracking-wider"
+                      style={{ color: subjectColor(lesson.subject) }}
+                    >
+                      {subjectLabel(lesson.subject)}
+                    </span>
+                    {lesson.is_offline && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-adult-bg text-adult-muted">
+                        Offline
+                      </span>
+                    )}
+                  </div>
                   <h3 className="font-semibold text-adult-ink mt-0.5">{lesson.title}</h3>
                   {lesson.description && (
                     <p className="text-sm text-adult-muted mt-1 line-clamp-1">{lesson.description}</p>
