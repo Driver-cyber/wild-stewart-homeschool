@@ -26,6 +26,8 @@ export default function WeekPage() {
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [profilesLoading, setProfilesLoading] = useState(true)
   const [pickDay, setPickDay] = useState<string | null>(null)
+  const [pickQuery, setPickQuery] = useState('')
+  const [pickSubjects, setPickSubjects] = useState<Set<string>>(new Set())
   const [bulkOpen, setBulkOpen] = useState(false)
 
   const weekDates = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i))
@@ -250,9 +252,9 @@ export default function WeekPage() {
       {pickDay !== null && (
         <div
           className="fixed inset-0 bg-black/30 flex items-end sm:items-center justify-center p-4 z-50"
-          onClick={e => { if (e.target === e.currentTarget) setPickDay(null) }}
+          onClick={e => { if (e.target === e.currentTarget) { setPickDay(null); setPickQuery(''); setPickSubjects(new Set()) } }}
         >
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[70vh] flex flex-col shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-xl">
             <div className="p-5 border-b border-adult-border flex items-center justify-between">
               <h3 className="font-display text-lg font-bold text-adult-ink">
                 Add to{' '}
@@ -261,58 +263,127 @@ export default function WeekPage() {
                 })}
               </h3>
               <button
-                onClick={() => setPickDay(null)}
+                onClick={() => { setPickDay(null); setPickQuery(''); setPickSubjects(new Set()) }}
                 className="text-adult-muted hover:text-adult-ink text-xl leading-none"
               >✕</button>
             </div>
+            <div className="px-5 pt-4 pb-3 border-b border-adult-border space-y-3">
+              <input
+                type="search"
+                placeholder="Search lessons…"
+                value={pickQuery}
+                onChange={e => setPickQuery(e.target.value)}
+                autoFocus
+                className="w-full px-4 py-2 rounded-lg border border-adult-border bg-adult-bg text-adult-ink text-sm focus:outline-none focus:ring-2 focus:ring-adult-accent"
+              />
+              <div className="flex flex-wrap gap-1.5">
+                {SUBJECTS.map(subject => {
+                  const active = pickSubjects.has(subject.value)
+                  return (
+                    <button
+                      key={subject.value}
+                      type="button"
+                      onClick={() => setPickSubjects(s => {
+                        const next = new Set(s)
+                        if (next.has(subject.value)) next.delete(subject.value)
+                        else next.add(subject.value)
+                        return next
+                      })}
+                      className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors"
+                      style={{
+                        color: active ? 'white' : subject.color,
+                        backgroundColor: active ? subject.color : 'transparent',
+                        borderColor: subject.color,
+                      }}
+                    >
+                      {subject.label}
+                    </button>
+                  )
+                })}
+                {(pickQuery || pickSubjects.size > 0) && (
+                  <button
+                    type="button"
+                    onClick={() => { setPickQuery(''); setPickSubjects(new Set()) }}
+                    className="px-2.5 py-1 rounded-full text-xs font-semibold text-adult-muted hover:text-adult-ink"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="overflow-y-auto flex-1 p-3">
-              {lessons.length === 0 ? (
-                <p className="text-adult-muted text-sm p-4 text-center">
-                  No lessons in library yet. Add some first.
-                </p>
-              ) : (
-                <div className="space-y-1">
-                  {SUBJECTS.map(subject => {
-                    const alreadyAssigned = new Set(pickDay ? forDay(pickDay).map(a => a.lesson_id) : [])
-                    const group = lessons.filter(l =>
-                      l.subject === subject.value && !alreadyAssigned.has(l.id)
-                    )
-                    if (group.length === 0) return null
-                    return (
-                      <div key={subject.value}>
-                        <div
-                          className="px-3 py-1 text-xs font-bold uppercase tracking-wider"
-                          style={{ color: subject.color }}
-                        >
-                          {subject.label}
-                        </div>
-                        {group.map(lesson => (
-                          <button
-                            key={lesson.id}
-                            onClick={() => assign(lesson.id, pickDay)}
-                            className="w-full text-left px-4 py-3 rounded-xl hover:bg-adult-bg transition-colors flex items-center gap-3"
+              {(() => {
+                if (lessons.length === 0) {
+                  return (
+                    <p className="text-adult-muted text-sm p-4 text-center">
+                      No lessons in library yet. Add some first.
+                    </p>
+                  )
+                }
+                const alreadyAssigned = new Set(pickDay ? forDay(pickDay).map(a => a.lesson_id) : [])
+                const q = pickQuery.trim().toLowerCase()
+                const filtered = lessons.filter(l => {
+                  if (alreadyAssigned.has(l.id)) return false
+                  if (pickSubjects.size > 0 && !pickSubjects.has(l.subject)) return false
+                  if (q) {
+                    const hay = `${l.title} ${l.description ?? ''} ${l.track ?? ''} ${l.week_number ?? ''}`.toLowerCase()
+                    if (!hay.includes(q)) return false
+                  }
+                  return true
+                })
+                if (filtered.length === 0) {
+                  return (
+                    <p className="text-adult-muted text-sm p-4 text-center">
+                      No lessons match.
+                    </p>
+                  )
+                }
+                return (
+                  <div className="space-y-1">
+                    {SUBJECTS.map(subject => {
+                      const group = filtered.filter(l => l.subject === subject.value)
+                      if (group.length === 0) return null
+                      return (
+                        <div key={subject.value}>
+                          <div
+                            className="px-3 py-1 text-xs font-bold uppercase tracking-wider"
+                            style={{ color: subject.color }}
                           >
-                            <div
-                              className="w-2 h-2 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: subjectColor(lesson.subject) }}
-                            />
-                            <div>
-                              <div className="font-semibold text-adult-ink text-sm">
-                                {lesson.title}
-                              </div>
-                              {lesson.description && (
-                                <div className="text-xs text-adult-muted line-clamp-1 mt-0.5">
-                                  {lesson.description}
+                            {subject.label}
+                          </div>
+                          {group.map(lesson => (
+                            <button
+                              key={lesson.id}
+                              onClick={() => assign(lesson.id, pickDay)}
+                              className="w-full text-left px-4 py-3 rounded-xl hover:bg-adult-bg transition-colors flex items-center gap-3"
+                            >
+                              <div
+                                className="w-2 h-2 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: subjectColor(lesson.subject) }}
+                              />
+                              <div className="min-w-0">
+                                <div className="font-semibold text-adult-ink text-sm flex items-center gap-2">
+                                  <span className="truncate">{lesson.title}</span>
+                                  {lesson.week_number != null && (
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-adult-muted bg-adult-bg rounded px-1 py-0.5 flex-shrink-0">
+                                      W{lesson.week_number}
+                                    </span>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
+                                {lesson.description && (
+                                  <div className="text-xs text-adult-muted line-clamp-1 mt-0.5">
+                                    {lesson.description}
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
             </div>
           </div>
         </div>
