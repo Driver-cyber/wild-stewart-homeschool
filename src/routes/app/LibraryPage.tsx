@@ -240,6 +240,11 @@ export default function LibraryPage() {
   // form — offline / external lesson (library book, piano, field trip, etc.)
   const [isOffline, setIsOffline] = useState(false)
 
+  // list — search & filter
+  const [query, setQuery] = useState('')
+  const [subjectFilters, setSubjectFilters] = useState<Set<string>>(new Set())
+  const [offlineOnly, setOfflineOnly] = useState(false)
+
   useEffect(() => { loadLessons() }, [])
 
   async function loadLessons() {
@@ -547,6 +552,63 @@ export default function LibraryPage() {
         </div>
       )}
 
+      {!loading && lessons.length > 0 && (
+        <div className="mb-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="search"
+              placeholder="Search lessons…"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="flex-1 px-4 py-2 rounded-lg border border-adult-border bg-white text-adult-ink text-sm focus:outline-none focus:ring-2 focus:ring-adult-accent"
+            />
+            <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-adult-border bg-white cursor-pointer text-sm">
+              <input
+                type="checkbox"
+                checked={offlineOnly}
+                onChange={e => setOfflineOnly(e.target.checked)}
+                className="w-4 h-4 accent-adult-accent"
+              />
+              <span className="text-adult-ink font-medium">Offline only</span>
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {SUBJECTS.map(s => {
+              const active = subjectFilters.has(s.value)
+              return (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => setSubjectFilters(prev => {
+                    const next = new Set(prev)
+                    if (next.has(s.value)) next.delete(s.value)
+                    else next.add(s.value)
+                    return next
+                  })}
+                  className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors"
+                  style={{
+                    color: active ? 'white' : s.color,
+                    backgroundColor: active ? s.color : 'transparent',
+                    borderColor: s.color,
+                  }}
+                >
+                  {s.label}
+                </button>
+              )
+            })}
+            {(query || subjectFilters.size > 0 || offlineOnly) && (
+              <button
+                type="button"
+                onClick={() => { setQuery(''); setSubjectFilters(new Set()); setOfflineOnly(false) }}
+                className="px-2.5 py-1 rounded-full text-xs font-semibold text-adult-muted hover:text-adult-ink"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <p className="text-adult-muted">Loading…</p>
       ) : lessons.length === 0 ? (
@@ -554,9 +616,32 @@ export default function LibraryPage() {
           <p className="text-adult-muted text-lg font-medium mb-1">No lessons yet.</p>
           <p className="text-adult-muted text-sm">Add your first one to get started.</p>
         </div>
-      ) : (
+      ) : (() => {
+        const q = query.trim().toLowerCase()
+        const filtered = lessons.filter(l => {
+          if (subjectFilters.size > 0 && !subjectFilters.has(l.subject)) return false
+          if (offlineOnly && !l.is_offline) return false
+          if (q) {
+            const hay = `${l.title} ${l.description ?? ''} ${l.track ?? ''} ${l.week_number ?? ''}`.toLowerCase()
+            if (!hay.includes(q)) return false
+          }
+          return true
+        })
+        if (filtered.length === 0) {
+          return (
+            <div className="bg-white border border-adult-border rounded-2xl p-12 text-center">
+              <p className="text-adult-muted text-sm">No lessons match.</p>
+            </div>
+          )
+        }
+        return (
         <div className="space-y-2">
-          {lessons.map(lesson => {
+          <p className="text-xs text-adult-muted px-1">
+            {filtered.length === lessons.length
+              ? `${lessons.length} lessons`
+              : `${filtered.length} of ${lessons.length} lessons`}
+          </p>
+          {filtered.map(lesson => {
             const ytId = lesson.resource_url ? getYouTubeId(lesson.resource_url) : null
             const ytId2 = lesson.resource_url_2 ? getYouTubeId(lesson.resource_url_2) : null
             return (
@@ -647,7 +732,8 @@ export default function LibraryPage() {
             )
           })}
         </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
