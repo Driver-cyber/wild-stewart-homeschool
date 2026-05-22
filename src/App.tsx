@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './routes/LoginPage'
 import WelcomePage from './routes/WelcomePage'
+import GuidePage from './routes/GuidePage'
 import AppShell from './routes/app/AppShell'
 import LearnShell from './routes/learn/LearnShell'
 
@@ -12,6 +13,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/guide" element={<GuidePage />} />
         <Route
           path="/app/*"
           element={<ProtectedRoute><AppShell /></ProtectedRoute>}
