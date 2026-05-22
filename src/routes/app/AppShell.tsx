@@ -23,7 +23,7 @@ export default function AppShell() {
             { to: '/app/sight-words',                 label: 'Sight Words' },
             { to: '/app/library',                     label: 'Library'     },
             { to: '/app/profiles',                    label: 'Profiles'    },
-            { to: '/welcome',                         label: 'Guide'       },
+            { to: '/guide',                           label: 'Guide'       },
           ].map(({ to, label }) => (
             <NavLink
               key={to}
